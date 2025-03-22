@@ -1,0 +1,35 @@
+---
+title: "SARARteoria"
+format: html
+editor: visual
+---
+
+## SARAR 
+
+ $$\begin{equation}
+ y_{it} = \rho \sum_{j=1}^n w_{ij}y_{ij} + x_{ij}^T\beta + u_{it}\\
+ u_{it} = \lambda\sum_{k<t}g_{tk}u_{ik}+\epsilon_{it} 
+ 
+ \end{equation}$$
+ Con $\epsilon \sim N(0,\sigma^2)$.
+ $$\begin{cases}
+ Y= \rho Wy + x^T\beta + u\\
+ U = \lambda Gu+\epsilon 
+ \end{cases}$$
+$$u=(Id-\lambda G)^{-1}\epsilon=B\epsilon$$
+$$\begin{equation}
+(Id-\rho W)y=X\beta + B^{-1}\epsilon \Longrightarrow y=A^{-1}X\beta + A^{-1}B^{-1}\epsilon\\ 
+ \epsilon = BAy-BX\beta
+\end{equation}$$
+Sabiendo que $\epsilon\sim N(0,\Sigma)$ definimos $v=\Sigma^{-\frac{1}{2}}\epsilon$ para que $v\sim N(0,1)$
+$$v=\Sigma^{-\frac{1}{2}}(BAy-BX\beta)$$
+Sabiendo que la distribución de una normal multivariada $X\sim N(\mu,\Omega)$ sigue $P(X)=\frac{1}{|\Omega|^{\frac{1}{2}}\sqrt{2\pi}^p}e^{^{-\frac{1}{2}}(x-\mu)^t\sum(x-\mu)}$ tenemos que nuestra distribucion para v seguirá
+$$P(v)=\frac{1}{{(2\pi)}^\frac{n}{2}}e^{^{-\frac{1}{2}}v^tv}$$
+Realizando el cambio de variable $v=\Omega^{-\frac{1}{2}}(BAy-BX\beta)$ tenemos que la jacobiana es $|\frac{dv}{dy}|=|\Omega|^{-\frac{1}{2}}|B||A|$ 
+
+$$P(v)=\frac{|B||A|}{{(2\pi)}^\frac{n}{2}|\Omega|^{\frac{1}{2}}}e^{^{-\frac{1}{2}}(BAy-BX\beta)^t\Omega^{-1}(BAy-BX\beta)}$$
+Teoria de log-verosimilitud
+$$l=ln(P(y))=-\frac{n}{2}ln(\pi)-\frac{1}{2}ln(\Omega)+ ln|B| + ln|A| -\frac{1}{2}(BAy-BX\beta)^t\Omega^{-1}(BAy-BX\beta)$$
+Podemos obtener el parámetro $\beta$ con $\frac{dl}{d\beta}=0$
+$$\frac{dl}{d\beta}=0=BX\Omega^{-1}(BAy-BX\beta)\\ 
+\beta = (BX\Omega^{-1}BX)^{-1}BX\Omega^{-1}BAy$$
