@@ -1,0 +1,153 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(spdep)
+library(spatialreg)
+library(gamlss)
+library(sphet)
+library(xtable)
+library(ggspatial)
+
+library(readxl)
+```
+
+```{r}
+setwd("C:\\Users\\oscar\\Documents\\oscar\\4t_carrera\\TFG\\TFG_Osc2025")#\\TFG_2025\\SIANE_CARTO_BASE_S_10M\\SIANE_CARTO_BASE_S_10M")
+
+#cargamos los datos del mapa
+pov<-read_sf("SIANE_CARTO_BASE_S_10M/vigente/se89_10_admin_prov_a_x.shp", , options = "ENCODING=UTF8")
+
+#preparamos datos de necimientos
+nacimientos <- read.csv("Nacimientos.csv", header = TRUE, sep = ";")
+nacimientos$Total <- as.numeric(gsub("\\.", "", nacimientos$Total))
+nacimientos_2020M01 <- nacimientos %>%
+  filter(Periodo == "2020M01") %>%
+  filter(Provincias != "Total") 
+  # Separar la columna Provincias en codigo_provincia y nombre_provincia
+  #separate(Provincias, into = c("codigo_provincia", "nombre_provincia"), sep = " ", extra = "merge")
+#head(nacimientos_2020M01,10)
+
+#preparamos datos de poblacion
+poblacion <- read.csv("Poblacion.csv", header = TRUE, sep = ";")
+poblacion_2020M01 <- poblacion %>%
+  filter(Edad.simple == "Todas las edades") %>%
+  filter(Provincias != "Total Nacional") %>%
+  filter(Sexo == "Total") %>%
+  filter(Periodo == "1 de enero de 2020")
+#head(poblacion_2020M01,10)
+
+#preparams datos de IPC
+IPC <- read.csv("IPCgrupos.csv", header = TRUE, sep = ";")
+IPC_2020M01 <- IPC %>%
+  filter(Grupos.ECOICOP == "Índice general") %>%
+  filter(Provincias != "Nacional") %>%
+  filter(Tipo.de.dato == "Índice") %>%
+  filter(Periodo == "2020M01")
+#head(IPC_2020M01,10)
+
+#Unimos los datos
+datos <- merge(x=nacimientos_2020M01, y=poblacion_2020M01, 
+                    by.x="Provincias", by.y="Provincias", all.x=TRUE)
+
+#colnames(datos)
+datoss <- merge(x=datos, y=IPC_2020M01, 
+                    by.x="Provincias", by.y="Provincias", all.x=TRUE) %>%
+  select(Provincias, Periodo.x, Total.x, Total.y, Total) %>%
+  rename(Periodo = Periodo.x, Total.Nacimientos = Total.x, Total.Poblacion = Total.y,  Total.IPC=Total) %>%
+  # Separar la columna Provincias en codigo_provincia y nombre_provincia
+  separate(Provincias, into = c("codigo_provincia", "nombre_provincia"), sep = " ", extra = "merge")
+#colnames(datoss)
+
+#unimos con el mapa
+pov2 <- merge(x=pov, y=datoss, 
+                    by.x="id_prov", by.y="codigo_provincia", all.x=TRUE)
+colnames(pov2)
+```
+
+```{r}
+#CREACION DEL MAPA
+p1 <- ggplot()+geom_sf(data=pov2, aes(fill = Total.Nacimientos))+
+  coord_sf()
+
+p1 <- p1 +ggspatial::annotation_scale(
+  location = "tl",
+  bar_cols = c("grey60", "white")
+) +
+  ggspatial::annotation_north_arrow(
+    location = "bl", which_north = "true",
+    pad_x = unit(0, "in"), pad_y = unit(0, "in"),
+    style = ggspatial::north_arrow_nautical(
+      fill = c("grey40", "white"),
+      line_col = "grey20"
+    )
+  )+
+  xlab("Longitude")+
+  ylab("Latitude")+
+  scale_fill_gradientn(colours = c("darkred", "orange",
+                                   "yellow"),
+                       name = "Nacimientos 2020M01", ,na.value="white")
+
+
+ggsave("NacimientosSpain.pdf",p1, dpi=320)
+```
+
+```{r}
+#TERRAPLANISTA
+
+##pov<- spTransform(pov, CRS("+proj=longlat +datum=NAD83"))
+#Matriz de pesos espaciales
+sf_use_s2(FALSE)
+
+pov2 <- pov2 %>% dplyr::filter(!is.na(Total.Nacimientos))
+```
+
+```{r}
+#CALCULA VECINOS DE TODO POLIGONO (1 SI, 0 NO)
+
+#pov<-pov[!is.na(pov@data$GINI),]
+### Matriz de vecinos
+
+cont.nb <- spdep::poly2nb(pov2) 	# from the spdep:: package
+
+```
+
+```{r}
+#CREA LA W ESTANDARIZADA PARA EL SARAR
+
+cont.listw <- nb2listw(cont.nb, style="W",zero.policy=T)		# from the spdep:: package
+
+par(mfrow=c(1,2))
+
+# PARA VER DEPENDENCIA ESPACIAL (AUTOCORRELACION ESPACIAL)
+moran.plot(pov2$Total.Nacimientos,listw = cont.listw,zero.policy = T)
+moran.test(pov2$Total.Nacimientos,listw = cont.listw,zero.policy = T)
+# SI NO HAY DEPENDENCIA ESPACIAL ES EQUIVALENTE A PERMUTACIONES (DA IGUAL SI ES ALICANTE O ALBACETE) 
+```
+
+EN NUESTRO CASO EL P-VALOR ES \>0.05 ASI QUE NO SE RECHAZA LA HIPÓTESIS NULA, LO QUE SUGIERE AUSENCIA DE AUTOCORRELACIÓN ESPACIAL (LOS VALORES DISTRIBUIDOS ALEATORIAMENTE)
+
+```{r}
+names(pov2)
+
+```
+
+# Un SEM
+
+```{r}
+m<-errorsarlm(Total.Nacimientos~Total.Poblacion+`Total.IPC`
+           ,data=pov2,list=cont.listw,zero.policy = T)
+
+summary(m,Nagelkerke=T)
+```
+
+```{r}
+res_sem<-residuals(m)
+moran.plot(res_sem,listw = cont.listw,zero.policy = T)
+moran.test(res_sem,listw = cont.listw,zero.policy = T)
+```
