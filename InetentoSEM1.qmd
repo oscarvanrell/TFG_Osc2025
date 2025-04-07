@@ -17,16 +17,31 @@ library(ggspatial)
 library(readxl)
 ```
 
+```{r, eval=FALSE, echo=FALSE}
+library(readr)
+Poblacion <- read_delim("C:/Users/UIB/Downloads/Poblacion.csv", 
+    delim = ";", escape_double = FALSE, locale = locale(decimal_mark = ",", 
+        grouping_mark = "."), trim_ws = TRUE)
+
+IPC_Grupos <- read_delim("C:/Users/UIB/Downloads/IPCgrupos.csv", 
+    delim = ";", escape_double = FALSE, locale = locale(decimal_mark = ",", 
+        grouping_mark = "."), trim_ws = TRUE)
+
+Nacimientos <- read_delim("C:/Users/UIB/Downloads/Nacimientos.csv", 
+    delim = ";", escape_double = FALSE, locale = locale(decimal_mark = ",", 
+        grouping_mark = "."), trim_ws = TRUE)
+
+save(IPC_Grupos, Nacimientos, Poblacion, file="DatosIniciales.RData")
+```
+
 ```{r}
-setwd("C:\\Users\\oscar\\Documents\\oscar\\4t_carrera\\TFG\\TFG_Osc2025")#\\TFG_2025\\SIANE_CARTO_BASE_S_10M\\SIANE_CARTO_BASE_S_10M")
+
+load("DatosIniciales.RData")
 
 #cargamos los datos del mapa
-pov<-read_sf("SIANE_CARTO_BASE_S_10M/vigente/se89_10_admin_prov_a_x.shp", , options = "ENCODING=UTF8")
+pov<-read_sf("shapefiles_provincias_espana/shapefiles_provincias_espana.shp", , options = "ENCODING=UTF8")
 
-#preparamos datos de necimientos
-nacimientos <- read.csv("Nacimientos.csv", header = TRUE, sep = ";")
-nacimientos$Total <- as.numeric(gsub("\\.", "", nacimientos$Total))
-nacimientos_2020M01 <- nacimientos %>%
+nacimientos_2020M01 <- Nacimientos %>%
   filter(Periodo == "2020M01") %>%
   filter(Provincias != "Total") 
   # Separar la columna Provincias en codigo_provincia y nombre_provincia
@@ -34,20 +49,19 @@ nacimientos_2020M01 <- nacimientos %>%
 #head(nacimientos_2020M01,10)
 
 #preparamos datos de poblacion
-poblacion <- read.csv("Poblacion.csv", header = TRUE, sep = ";")
-poblacion_2020M01 <- poblacion %>%
-  filter(Edad.simple == "Todas las edades") %>%
+
+poblacion_2020M01 <- Poblacion %>%
+  filter(`Edad simple` == "Todas las edades") %>%
   filter(Provincias != "Total Nacional") %>%
   filter(Sexo == "Total") %>%
   filter(Periodo == "1 de enero de 2020")
 #head(poblacion_2020M01,10)
 
 #preparams datos de IPC
-IPC <- read.csv("IPCgrupos.csv", header = TRUE, sep = ";")
-IPC_2020M01 <- IPC %>%
-  filter(Grupos.ECOICOP == "Índice general") %>%
+IPC_2020M01 <- IPC_Grupos %>%
+  filter(`Grupos ECOICOP` == "Índice general") %>%
   filter(Provincias != "Nacional") %>%
-  filter(Tipo.de.dato == "Índice") %>%
+  filter(`Tipo de dato` == "Índice") %>%
   filter(Periodo == "2020M01")
 #head(IPC_2020M01,10)
 
@@ -56,7 +70,7 @@ datos <- merge(x=nacimientos_2020M01, y=poblacion_2020M01,
                     by.x="Provincias", by.y="Provincias", all.x=TRUE)
 
 #colnames(datos)
-datoss <- merge(x=datos, y=IPC_2020M01, 
+datos <- merge(x=datos, y=IPC_2020M01, 
                     by.x="Provincias", by.y="Provincias", all.x=TRUE) %>%
   select(Provincias, Periodo.x, Total.x, Total.y, Total) %>%
   rename(Periodo = Periodo.x, Total.Nacimientos = Total.x, Total.Poblacion = Total.y,  Total.IPC=Total) %>%
@@ -65,14 +79,15 @@ datoss <- merge(x=datos, y=IPC_2020M01,
 #colnames(datoss)
 
 #unimos con el mapa
-pov2 <- merge(x=pov, y=datoss, 
-                    by.x="id_prov", by.y="codigo_provincia", all.x=TRUE)
+pov2 <- merge(x=pov, y=datos, 
+                    by.x="codigo", by.y="codigo_provincia", all.x=TRUE) %>% 
+  mutate(tasaNaci = 1E5*Total.Nacimientos/Total.Poblacion)
 colnames(pov2)
 ```
 
 ```{r}
 #CREACION DEL MAPA
-p1 <- ggplot()+geom_sf(data=pov2, aes(fill = Total.Nacimientos))+
+p1 <- ggplot()+geom_sf(data=pov2, aes(fill = tasaNaci))+
   coord_sf()
 
 p1 <- p1 +ggspatial::annotation_scale(
@@ -93,7 +108,7 @@ p1 <- p1 +ggspatial::annotation_scale(
                                    "yellow"),
                        name = "Nacimientos 2020M01", ,na.value="white")
 
-
+p1
 ggsave("NacimientosSpain.pdf",p1, dpi=320)
 ```
 
@@ -125,8 +140,8 @@ cont.listw <- nb2listw(cont.nb, style="W",zero.policy=T)		# from the spdep:: pac
 par(mfrow=c(1,2))
 
 # PARA VER DEPENDENCIA ESPACIAL (AUTOCORRELACION ESPACIAL)
-moran.plot(pov2$Total.Nacimientos,listw = cont.listw,zero.policy = T)
-moran.test(pov2$Total.Nacimientos,listw = cont.listw,zero.policy = T)
+moran.plot(pov2$tasaNaci,listw = cont.listw,zero.policy = T)
+moran.test(pov2$tasaNaci,listw = cont.listw,zero.policy = T)
 # SI NO HAY DEPENDENCIA ESPACIAL ES EQUIVALENTE A PERMUTACIONES (DA IGUAL SI ES ALICANTE O ALBACETE) 
 ```
 
@@ -140,8 +155,8 @@ names(pov2)
 # Un SEM
 
 ```{r}
-m<-errorsarlm(Total.Nacimientos~Total.Poblacion+`Total.IPC`
-           ,data=pov2,list=cont.listw,zero.policy = T)
+m<-errorsarlm(tasaNaci~Total.IPC,
+              data=pov2,list=cont.listw,zero.policy = T)
 
 summary(m,Nagelkerke=T)
 ```
