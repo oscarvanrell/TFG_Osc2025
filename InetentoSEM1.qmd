@@ -144,6 +144,7 @@ moran.plot(pov2$tasaNaci,listw = cont.listw,zero.policy = T)
 moran.test(pov2$tasaNaci,listw = cont.listw,zero.policy = T)
 # SI NO HAY DEPENDENCIA ESPACIAL ES EQUIVALENTE A PERMUTACIONES (DA IGUAL SI ES ALICANTE O ALBACETE) 
 ```
+EN NUESTRO CASO, TENEMOS UN MORAN'S I ALTO Y POSITIVO (3.4) LO QUE INDICA QUE VALORES SIMILARES ESTAN CERCA UNOS DE OTROS. ADEMÁS COMO EL P-VALOR ES <0.05 INDICA PRESENCIA DE AUTOCORRELACION ESPACIAL SIGNIFICATIVA (LA DISTRIBUCION DE LOS DATOS NO ES ALEATORIA Y EXISTE PATRON ESPACIAL).
 
 EN NUESTRO CASO EL P-VALOR ES \>0.05 ASI QUE NO SE RECHAZA LA HIPÓTESIS NULA, LO QUE SUGIERE AUSENCIA DE AUTOCORRELACIÓN ESPACIAL (LOS VALORES DISTRIBUIDOS ALEATORIAMENTE)
 
@@ -160,9 +161,107 @@ m<-errorsarlm(tasaNaci~Total.IPC,
 
 summary(m,Nagelkerke=T)
 ```
+Interpretación del SEM:
+- Residuals: diferencia entre los valores observados y los predichos por el modelo. Deberian estar distribuidos de forma aleatoria cercanos a 0 indicando que el modelo se ajusta bien a los datos (parece que nuestro caso no tiene mala pinta).
+
+- Lambda: influencia de la dependencia espacial entre las observaciones. Si es distinto a 0 sugiere que hay una dependencia espacial significativa entre las observaciones, observaciones cercanas entre si tienen valores mas similares que las distintas. (en nuestro caso es grande 0.86 y se ve reflejado en el mapa como comentó Alirio)
+
+- LR test value: compara el modelo ajustado con un modelo nulo sin variables explicativas. Si el p valor es bajo (<0.05) el modelo ajustado es mejor que el nulo (en nuestro caso el modelo ajustado es mejor que el nulo por tener p-valor 2.22e-16)
+
+- Log likelihood: medida de la bondad de ajuste del modelo. Cuanto mayor sea mejor se ajusta el modelo a los datos.
+
+- ML Residual Variance: da una medida de la dispersión de los errores del modelo. Una varianza residual más pequeña implica que los errores del modelo son más pequeños, lo que indica que el modelo se ajusta mejor a los datos. Debe interpretarse segun el contexto.
+
+- pseudo-R-cuadrado de Nagelkerke: versión ajustada del R-cuadrado para modelos no lineales y espaciales. Un valor cercano a 1 indica un buen ajuste del modelo, mientras que un valor cercano a 0 sugiere que el modelo no explica bien la variabilidad de los datos.
+
+- AIC: es una medida de la calidad del modelo, que penaliza modelos con muchos parámetros. Cuanto más bajo sea el AIC, mejor es el modelo, en términos de ajuste y simplicidad. Tambien lo compara con el modelo clasico (lm), y vemos que es ligeramente mejor que este.
 
 ```{r}
 res_sem<-residuals(m)
 moran.plot(res_sem,listw = cont.listw,zero.policy = T)
 moran.test(res_sem,listw = cont.listw,zero.policy = T)
 ```
+
+# Un SAR 
+
+
+
+
+```{r}
+lagsar<- lagsarlm(tasaNaci~Total.IPC,
+                  data=pov2,list=cont.listw,zero.policy = T)
+
+summary(lagsar)
+```
+INTERPRETACION SAR:
+
+- rho: coeficiente de autocorrelación espacial de la variable dependiente. Mide cuánto afecta el valor de tasaNaci en una región al valor en regiones vecinas. (en nuestro caso rho es negativo (-0.15), lo cual sugiere una relación espacial inversa débil, cuando aumenta la tasa en un lugar, podría disminuir en sus vecinos).
+
+Tests sobre rho:
+- Wald statistic: evalua el caso de rho=0, i.e. si no hay autocorrelacion espacial significativa en la var dependiente. Responde a la pregunta de si vale la pena tener un modelo SAR en lugar de uno lineal simple. (en nuestro caso el p-valor es alto lo que sugiere que el componente espacial rho no es significativamente distinto a 0 y que el SAR no mejora tanto sobre uno lineal).
+
+- z-value: lo mismo pero usa una aproximacion normal en luegar de una chi-cuadrado (en nuestro caso tampoco encuentra evidencia para decir que rho es distinto de 0).
+
+- LR test value: lo compara con el modelo lineal sin componente espacial (en nuestro caso vuelve a decir qeu no mejora)
+
+
+- LM test for residual autocorrelation: indica si los residuos del modelo clasico (lm) presentan autocorrelación espacial para justificar el uso de un modelo espacial. p-valor pequeño implica autocorrelacion espacial significativa. (en nuestro caso pese a que rho no sale significativo, si existe autocorrelacion espacial en los datos)
+
+
+```{r}
+spatialreg::impacts(lagsar, listw=cont.listw, R=1000)
+```
+```{r}
+res_sar<-residuals(lagsar)
+moran.plot(res_sar,listw = cont.listw,zero.policy = T)
+moran.test(res_sar,listw = cont.listw,zero.policy = T)
+```
+
+# Un SARAR
+
+```{r}
+sarar<-sacsarlm(tasaNaci~Total.IPC,
+                data=pov2,listw =cont.listw,zero.policy = T)
+
+summary(sarar)
+```
+INTERPRETACION SARAR:
+
+-rho: autocorrelacion espacial en la var dependiente. En nuestro caso al ser negativo sugiere que una region de tasa alta esta rodeada de regiones de tasas bajas y viceversa y el p-valor es pequeño lo qu eimplica que es significativo.
+
+- lambda: autocorrelacion espacial en los errores: tenemos alta autocorrelacion espacial en los errores.
+
+En este caso el LR test value indica que es mejor que un modelo lineal y el AIC mejora con respecto al modelo estandar (lm)
+
+
+```{r}
+res_sarar<-residuals(sarar)
+moran.plot(res_sarar,listw = cont.listw,zero.policy = T)
+moran.test(res_sarar,listw = cont.listw,zero.policy = T)
+
+```
+### Comparacion
+
+Podriamos decir que el SARAR es el que mejor se ajusta teniendo en cuenta el valor de AIC.
+
+
+```{r}
+#esto de mas aporta?
+matstand=nb2mat(cont.nb, zero.policy = TRUE)
+wt1<-matstand
+W=wt1
+
+
+
+h_sarar<-spreg(tasaNaci~Total.IPC,data=pov2,
+               listw =wt1,model="sarar",het=T)
+
+summary(h_sarar)
+```
+
+```{r}
+res_sarar_h<-residuals(h_sarar)
+moran.plot(res_sarar_h,listw = cont.listw,zero.policy = T)
+moran.test(res_sarar_h,listw = cont.listw,zero.policy = T)
+```
+
