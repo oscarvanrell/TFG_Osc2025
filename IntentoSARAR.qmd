@@ -26,13 +26,33 @@ library(Matrix)
 
 
 ```{r}
-#load("DatosIniciales.RData")
+load("DatosIniciales.RData")
 #Poblacion <- read_delim("C:/Users/oscar/Downloads/2852.csv", 
  #   delim = ";", escape_double = FALSE, locale = locale(decimal_mark = ",", 
   #      grouping_mark = "."), trim_ws = TRUE)
 #save(IPC_Grupos, Nacimientos, Poblacion, file = "DatosIniciales.RData")
 
 ```
+
+```{r}
+#ARNAU:
+separacion.año = function(x){
+  y=strsplit(x, "M")
+  año=y[[1]][1]
+  solucion = as.numeric(año)
+  return(solucion)
+}
+separacion.mes = function(x){
+  y=strsplit(x, "M")
+  mes=y[[1]][2]
+  solucion = as.numeric(mes)
+  return(solucion)
+}
+Año = sapply(Nacimientos$Periodo,separacion.año)
+Mes = sapply(Nacimientos$Periodo,separacion.mes)
+Nacimientos2=cbind(Nacimientos,Año,Mes)
+```
+
 
 ```{r}
 #cargamos los datos del mapa
@@ -119,15 +139,34 @@ ggsave("NacimientosSpain.pdf",p1, dpi=320)
 
 
 ```{r}
-# Scatterplot
-ggplot(tasa_media_prov, aes(x = ipc_medio, y = tasa_media)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(title = "Correlación entre IPC y Tasa media de Natalidad",
-       x = "IPC Medio", y = "Tasa media natalidad")
+library(ggpubr)
+
+ggscatter(tasa_media_prov, x = "ipc_medio", y = "tasa_media",
+          add = "reg.line", conf.int = TRUE,
+          cor.coef = TRUE, cor.method = "pearson")
 ```
+Correlacion positiva debil, pero con p-valor de 0.053>0.05 asi que podriamos decir que no es muy significativo estadisticamente...
 
 ## Analisis temporal tasa natalidad e IPC
+
+```{r}
+df5 <- datos2 %>%
+  group_by(codigo_provincia, nombre_provincia, Año) %>%
+  summarise(nacimientosaño = sum(Total.Nacimientos, na.rm = TRUE),.groups = "drop")
+
+
+p <- ggplot(df5, aes(x = Año, y = nacimientosaño, 
+                               group = nombre_provincia, color = nombre_provincia,
+                               text = paste("Provincia:", nombre_provincia,
+                                            "<br>Año:", Año,
+                                            "<br>Tasa:", round(nacimientosaño, 1)))) +
+  geom_line() +
+  labs(title = "Serie temporal de Tasa de Natalidad por provincia",
+       x = "Año", y = "Tasa por 100K") +
+  theme_minimal()
+
+ggplotly(p, tooltip = "text")
+```
 
 
 ```{r}
@@ -176,10 +215,11 @@ cont.nb2 <- spdep::poly2nb(pov2)
 cont.listw2 <- nb2listw(cont.nb2, style="W",zero.policy=T)	
 moran.test(pov2$tasa_nacim_media_año,listw = cont.listw2,zero.policy = T)
 ```
+Como resultado vemos que el indice de Moran es de 0.56 que es un valor positivo y elevado indicando autocorrelacion espacial positiva (areas geográficamente cercanas tienden a tener tasas de naciemiento similares). 
+Además el p-valor es bajo asi que es estadisticamente significativo
 
 
 ### Evolutivo test Moran a lo largo de los años
-
 
 indice de Moran por cada tiempo. Así gráficas en el eje x el tiempo, y en el eje y el indice de moran
 
@@ -200,12 +240,7 @@ for (año in años_unicos) {
   pov3 <- pov2 %>% 
     filter(Año == año, !is.na(tasa_nacim_media_año))
   
-   # Saltar si no hay provincias con datos válidos
-  if (nrow(pov3) <= 1) {
-    message(paste("Saltando año", año, "- no hay suficientes datos."))
-    next
-  }
-  
+
   # Crear la vecindad y lista de pesos espaciales
   cont.nb <- spdep::poly2nb(pov3)
   cont.listw <- nb2listw(cont.nb, style = "W", zero.policy = TRUE)
@@ -236,7 +271,7 @@ ggplot(resultados_moran, aes(x = año, y = moran_I)) +
     axis.title = element_text(size = 12)
   )
 ```
-Todos los indices de Moran son positivos pero estan entre 0.2 y 0.55 lo que indica que provincias cercanas tienden a tener tasas de natalidad similares pese a que ente los años 2011 y 2015 yenemos un indice de moran inferior a 0.3 que puede indicar que no haya patron espacial claro.
+Todos los indices de Moran son positivos pero estan entre 0.2 y 0.55 lo que indica que provincias cercanas tienden a tener tasas de natalidad similares pese a que ente los años 2011 y 2015 tenemos un indice de moran inferior a 0.3 que puede indicar que no haya patron espacial claro.
 
 
 # ANALISIS ESTADÍSTICO
@@ -250,7 +285,7 @@ pov_ord <- pov2 %>%
 # Crear la matriz W base (52x52) y convertir a matriz dispersa
 cont.nb3 <- poly2nb(pov_ord %>% filter(Año == 2002)) # cualquier año sirve pk es fija
 W_base <- nb2mat(cont.nb3, style = "W", zero.policy = TRUE)  # matriz normal
-W_sparse <- Matrix(W_base, sparse = TRUE)  # matriz dispersa
+W_sparse <- Matrix(W_base, sparse = TRUE)  # matriz dispersa: solo guarda los elementos diferentes de 0 y sus posiciones
 
 # Crear matriz identidad de orden 20 (años)
 I20 <- Diagonal(20)
@@ -276,15 +311,15 @@ X <- pov_ord$ipc_media_año
 
 ```{r}
 # Convertir W_big y G_big a matrices de adyacencia binarias (0/1)
-W_adj <- as.matrix(W_big)
-W_adj[W_adj != 0] <- 1
+#W_adj <- as.matrix(W_big)
+#W_adj[W_adj != 0] <- 1
 
-G_adj <- as.matrix(G_big)
-G_adj[G_adj != 0] <- 1
+#G_adj <- as.matrix(G_big)
+#G_adj[G_adj != 0] <- 1
 
 # Crear listas de vecinos
-W_nb <- mat2listw(W_adj, style = "W", zero.policy = TRUE)
-G_nb <- mat2listw(G_adj, style = "W", zero.policy = TRUE)
+W_nb <- mat2listw(W_big, style = "W", zero.policy = TRUE)
+G_nb <- mat2listw(G_big, style = "W", zero.policy = TRUE)
 
 # Creamos el data frame final con las variables necesarias
 modelo_df <- data.frame(
