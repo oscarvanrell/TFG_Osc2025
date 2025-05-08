@@ -34,24 +34,7 @@ load("DatosIniciales.RData")
 
 ```
 
-```{r}
-#ARNAU:
-separacion.año = function(x){
-  y=strsplit(x, "M")
-  año=y[[1]][1]
-  solucion = as.numeric(año)
-  return(solucion)
-}
-separacion.mes = function(x){
-  y=strsplit(x, "M")
-  mes=y[[1]][2]
-  solucion = as.numeric(mes)
-  return(solucion)
-}
-Año = sapply(Nacimientos$Periodo,separacion.año)
-Mes = sapply(Nacimientos$Periodo,separacion.mes)
-Nacimientos2=cbind(Nacimientos,Año,Mes)
-```
+
 
 
 ```{r}
