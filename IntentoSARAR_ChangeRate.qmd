@@ -124,7 +124,7 @@ ggsave("NacimientosSpain.pdf",p1, dpi=320)
 ```{r}
 library(ggpubr)
 
-ggscatter(tasa_media_prov, x = "ipc_medio", y = "tasa_media",
+ggscatter(pov2, x = "ipc_media_año", y = "Cambios",
           add = "reg.line", conf.int = TRUE,
           cor.coef = TRUE, cor.method = "pearson")
 ```
@@ -160,116 +160,42 @@ p <- ggplot(df5, aes(x = Año, y = Cambios,
 ggplotly(p, tooltip = "text")
 ```
 
-```{r}
+## Indice de Moran para datos panel
 
-p <- ggplot(df, aes(x = Año, y = tasa_nacim_media_año, 
-                               group = nombre_provincia, color = nombre_provincia,
-                               text = paste("Provincia:", nombre_provincia,
-                                            "<br>Año:", Año,
-                                            "<br>Tasa:", round(tasa_nacim_media_año, 1)))) +
-  geom_line() +
-  labs(title = "Serie temporal de Tasa de Natalidad por provincia",
-       x = "Año", y = "Tasa por 100K") +
-  theme_minimal()
-
-ggplotly(p, tooltip = "text")
-```
+El test de Moran para datos panel \[está explicado acá\]<https://www.sciencedirect.com/science/article/abs/pii/S026499931400162X>()
 
 ```{r}
-p2 <- ggplot(df, aes(x = Año, y = ipc_media_año, 
-                               group = nombre_provincia, color = nombre_provincia,
-                               text = paste("Provincia:", nombre_provincia,
-                                            "<br>Año:", Año,
-                                            "<br>Tasa:", round(ipc_media_año, 1)))) +
-  geom_line() +
-  labs(title = "Serie temporal del IPC por provincia",
-       x = "Año", y = "IPC") +
-  theme_minimal()
+pov_ord <- pov2 %>%
+  filter(!is.na(Cambios)) %>%
+  arrange(Año, nombre_provincia) # MUY IMPORTANTE: primero por año, luego provincia
 
-ggplotly(p2, tooltip = "text")
-```
-
-## Indice de Moran
-
-```{r}
 sf_use_s2(FALSE)
+cont.nb3 <- poly2nb(pov_ord %>% filter(Año == 2003)) # cualquier año sirve pk es fija
+W_base <- nb2mat(cont.nb3, style = "W", zero.policy = TRUE)  # matriz normal
+W_sparse <- Matrix(W_base, sparse = TRUE)  # matriz dispersa: solo guarda los elementos diferentes de 0 y sus posiciones
 
-pov2 <- pov2 %>% dplyr::filter(!is.na(Cambios))
+# Crear matriz identidad de orden 20 (años)
+I20 <- Diagonal(21)
+# Kronecker: W final para el modelo
+W_big <- kronecker(I20, W_sparse)
 
-cont.nb2 <- spdep::poly2nb(pov2)
+dataTest = plm::pdata.frame(pov_ord, index=c("codigo", "Año"))
+splm::slmtest(Cambios~1, data=dataTest, listw=W_base)
 ```
 
 ```{r}
-cont.listw2 <- nb2listw(cont.nb2, style="W",zero.policy=T)	
-moran.test(pov2$tasa_nacim_media_año,listw = cont.listw2,zero.policy = T)
+W_base <- mat2listw(W_big, style = "W", zero.policy = TRUE)
+moran.test(pov_ord$Cambios,listw = W_base,zero.policy = T)
 ```
 
 Como resultado vemos que el indice de Moran es de 0.56 que es un valor positivo y elevado indicando autocorrelacion espacial positiva (areas geográficamente cercanas tienden a tener tasas de naciemiento similares). Además el p-valor es bajo asi que es estadisticamente significativo
-
-### Evolutivo test Moran a lo largo de los años
-
-indice de Moran por cada tiempo. Así gráficas en el eje x el tiempo, y en el eje y el indice de moran
-
-```{r}
-# Crear un dataframe vacío para guardar resultados
-resultados_moran <- data.frame(
-  año = integer(),
-  moran_I = numeric(),
-  p_value = numeric()
-)
-
-# Obtener todos los años únicos
-años_unicos <- unique(pov2$Año)
-
-# Iterar por cada año
-for (año in años_unicos) {
-  # Filtrar los datos del año actual
-  pov3 <- pov2 %>% 
-    filter(Año == año, !is.na(tasa_nacim_media_año))
-  
-
-  # Crear la vecindad y lista de pesos espaciales
-  cont.nb <- spdep::poly2nb(pov3)
-  cont.listw <- nb2listw(cont.nb, style = "W", zero.policy = TRUE)
-  # Ejecutar el test de Moran
-  #mod = lm(pov3$tasa_nacim_media_año ~ pov3$ipc_media_año)
-  moran <- moran.test(pov3$tasa_nacim_media_año, 
-                      listw = cont.listw, zero.policy = TRUE)
-  # Extraer el índice de Moran
-  moran_I <- moran$estimate["Moran I statistic"]
-  p_valor <- moran$p.value
-  # Guardar el resultado
-  resultados_moran <- rbind(resultados_moran, data.frame(año = año, moran_I = moran_I, p_value = p_valor))
-}
-resultados_moran
-```
-
-Como los p-valores son todos pequeños, el índice es estadísticamente sigificativo asi que podremos interpretar su valor como evidencia de autocorrelación.
-
-```{r}
-ggplot(resultados_moran, aes(x = año, y = moran_I)) +
-  geom_line(color = "#2c7fb8", size = 1) +     # Línea
-  geom_point(color = "#253494", size = 2.5) +  # Puntos
-  labs(title = "Índice de Moran a lo largo del tiempo",
-       x = "Año",
-       y = "Índice de Moran") +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-    axis.title = element_text(size = 12)
-  )
-```
-
-Todos los indices de Moran son positivos pero estan entre 0.2 y 0.55 lo que indica que provincias cercanas tienden a tener tasas de natalidad similares pese a que ente los años 2011 y 2015 tenemos un indice de moran inferior a 0.3 que puede indicar que no haya patron espacial claro.
 
 # ANALISIS ESTADÍSTICO
 
 Construimos las matrices para el modelo:
 
 ```{r}
-pov_ord <- pov2 %>%
-  filter(!is.na(Cambios)) %>%
-  arrange(Año, nombre_provincia) # MUY IMPORTANTE: primero por año, luego provincia
+
 
 # Crear la matriz W base (52x52) y convertir a matriz dispersa
 cont.nb3 <- poly2nb(pov_ord %>% filter(Año == 2003)) # cualquier año sirve pk es fija
@@ -315,6 +241,9 @@ modelo_df <- data.frame(
   tasa = Y,
   ipc = X[,1],
   agno = X[,2])
+
+moran.plot(Y,listw = W_nb,zero.policy = TRUE)
+moran.test(Y,listw = W_nb,zero.policy = TRUE)
 ```
 
 ### SARAR
@@ -343,7 +272,7 @@ Parece que el modelo espaciotemporal mejora mucho respecto a uno lineal sin esto
 
 ```{r}
 res_sarar<-residuals(modelo_sarar)
-moran.plot(res_sarar,listw = W_nb,listw2 = G_nb,zero.policy = TRUE)
+moran.plot(res_sarar,listw = W_nb,zero.policy = TRUE)
 moran.test(res_sarar,listw = W_nb,zero.policy = TRUE)
 ```
 
@@ -362,6 +291,12 @@ modelo_sar <- lagsarlm(
 summary(modelo_sar)
 ```
 
+```{r}
+res_sar<-residuals(modelo_sar)
+moran.plot(res_sar,listw = W_nb,zero.policy = TRUE)
+moran.test(res_sar,listw = W_nb,zero.policy = TRUE)
+```
+
 ### SEM
 
 ```{r}
@@ -376,3 +311,9 @@ summary(modelo_sem)
 ```
 
 Segun el valor de AIC y Log likelihood, el modelo SARAR es el que mejor ajusta.
+
+```{r}
+res_sem<-residuals(modelo_sem)
+moran.plot(res_sem,listw = W_nb,zero.policy = TRUE)
+moran.test(res_sem,listw = W_nb,zero.policy = TRUE)
+```
