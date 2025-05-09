@@ -1,0 +1,378 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(spdep)
+library(spatialreg)
+library(gamlss)
+library(sphet)
+library(xtable)
+library(ggspatial)
+library(ggplot2)
+library(plotly)
+
+library(readxl)
+library(readr)
+library(dplyr)
+library(spdep)
+library(Matrix)
+```
+
+```{r}
+load("DatosIniciales.RData")
+#Poblacion <- read_delim("C:/Users/oscar/Downloads/2852.csv", 
+ #   delim = ";", escape_double = FALSE, locale = locale(decimal_mark = ",", 
+  #      grouping_mark = "."), trim_ws = TRUE)
+#save(IPC_Grupos, Nacimientos, Poblacion, file = "DatosIniciales.RData")
+
+```
+
+```{r}
+#cargamos los datos del mapa
+pov<-read_sf("shapefiles_provincias_espana/shapefiles_provincias_espana.shp", , options = "ENCODING=UTF8")
+
+nacimientos_filtrado <- Nacimientos %>%
+  filter(Periodo >= "2002M01") %>%
+  filter(Provincias != "Total") 
+
+poblacion_filtrado <- Poblacion %>%
+  filter(Provincias != "Total") %>%
+  filter(Provincias != "residente") %>%
+  filter(Sexo == "Total") %>%
+  filter(Periodo >= "2002")
+
+IPC_filtrado <- IPC_Grupos %>%
+  filter(`Grupos ECOICOP` == "Índice general") %>%
+  filter(Provincias != "Nacional") %>%
+  filter(`Tipo de dato` == "Índice") %>%
+  filter(Periodo >= "2002M01")
+
+
+datos <- merge(x=nacimientos_filtrado, y=IPC_filtrado, 
+                    by.x=c("Provincias","Periodo"), by.y=c("Provincias","Periodo"),  all.x=TRUE) %>%
+  separate(Periodo, into = c("Año", "Mes"), sep = "M", extra = "merge")
+
+datos2 <- merge(x=datos, y=poblacion_filtrado, 
+                    by.x=c("Provincias", "Año"), by.y=c("Provincias","Periodo"),   all.x=TRUE) %>%
+  select(Provincias, Año, Mes, Total.x, Total.y, Total) %>%
+  rename(Total.Nacimientos = Total.x, Total.IPC = Total.y,  Total.Poblacion=Total) %>%
+  # Separar la columna Provincias en codigo_provincia y nombre_provincia
+  separate(Provincias, into = c("codigo_provincia", "nombre_provincia"), sep = " ", extra = "merge") %>%
+  mutate(tasaNaci = 1E5*Total.Nacimientos/Total.Poblacion)
+
+
+# De momento consideraremos la media anual 
+df <- datos2 %>%
+  group_by(codigo_provincia, nombre_provincia, Año) %>%
+  summarise(tasa_nacim_media_año = mean(tasaNaci, na.rm = TRUE),
+            nacimientosaño = sum(Total.Nacimientos, na.rm = TRUE),
+            ipc_media_año = mean(Total.IPC, na.rm = TRUE),.groups = "drop") %>% 
+  dplyr::arrange(codigo_provincia,,nombre_provincia, Año) %>% 
+  dplyr::group_by(codigo_provincia) %>%
+  dplyr::mutate(Cambios =(nacimientosaño-lag(nacimientosaño))/lag(nacimientosaño)) %>% 
+  ungroup()
+
+pov2 <- merge(x=pov, y=df, 
+                    by.x="codigo", by.y="codigo_provincia", all.x=TRUE)
+```
+
+## Mapa de la tasa media de natalidad por provincia
+
+```{r}
+#PAra eso consideraremos la media de la tasa de natalidad de todos los datos historicos por provincia
+tasa_media_prov <- datos2 %>%
+  group_by(codigo_provincia, nombre_provincia) %>%
+  summarise(tasa_media = mean(tasaNaci, na.rm = TRUE),
+            ipc_medio = mean(Total.IPC, na.rm = TRUE))
+
+pov22 <- merge(x=pov, y=tasa_media_prov, 
+                    by.x="codigo", by.y="codigo_provincia", all.x=TRUE)
+
+#CREACION DEL MAPA
+p1 <- ggplot()+geom_sf(data=pov22, aes(fill = tasa_media))+
+  coord_sf()
+
+p1 <- p1 +ggspatial::annotation_scale(
+  location = "tl",
+  bar_cols = c("grey60", "white")
+) +
+  ggspatial::annotation_north_arrow(
+    location = "bl", which_north = "true",
+    pad_x = unit(0, "in"), pad_y = unit(0, "in"),
+    style = ggspatial::north_arrow_nautical(
+      fill = c("grey40", "white"),
+      line_col = "grey20"
+    )
+  )+
+  xlab("Longitude")+
+  ylab("Latitude")+
+  scale_fill_gradientn(colours = c("darkred", "orange",
+                                   "yellow"),
+                       name = "Nacimientos 2020M01", ,na.value="white")
+
+p1
+ggsave("NacimientosSpain.pdf",p1, dpi=320)
+```
+
+## Grafico de dispersion con correlacion: tasa media de natalidad vs IPC
+
+```{r}
+library(ggpubr)
+
+ggscatter(tasa_media_prov, x = "ipc_medio", y = "tasa_media",
+          add = "reg.line", conf.int = TRUE,
+          cor.coef = TRUE, cor.method = "pearson")
+```
+
+Correlacion positiva debil, pero con p-valor de 0.053\>0.05 asi que podriamos decir que no es muy significativo estadisticamente...
+
+## Analisis temporal tasa natalidad e IPC
+
+```{r}
+df5 <- datos2 %>%
+  filter(nombre_provincia != "residente") %>%
+  group_by(codigo_provincia, nombre_provincia, Año) %>%
+  summarise(nacimientosaño = sum(Total.Nacimientos, na.rm = TRUE),.groups = "drop")
+
+## Calcular los cambios
+
+df5 <- df5 %>% 
+  dplyr::arrange(codigo_provincia,,nombre_provincia, Año) %>% 
+  dplyr::group_by(codigo_provincia) %>%
+  dplyr::mutate(Cambios =(nacimientosaño-lag(nacimientosaño))/lag(nacimientosaño)) %>% 
+  ungroup()
+
+p <- ggplot(df5, aes(x = Año, y = Cambios, 
+                               group = nombre_provincia, color = nombre_provincia,
+                               text = paste("Provincia:", nombre_provincia,
+                                            "<br>Año:", Año,
+                                            "<br>Tasa:", round(nacimientosaño, 1)))) +
+  geom_line() +
+  labs(title = "Serie temporal de Tasa de Natalidad por provincia",
+       x = "Año", y = "Tasa por 100K") +
+  theme_minimal()
+
+ggplotly(p, tooltip = "text")
+```
+
+```{r}
+
+p <- ggplot(df, aes(x = Año, y = tasa_nacim_media_año, 
+                               group = nombre_provincia, color = nombre_provincia,
+                               text = paste("Provincia:", nombre_provincia,
+                                            "<br>Año:", Año,
+                                            "<br>Tasa:", round(tasa_nacim_media_año, 1)))) +
+  geom_line() +
+  labs(title = "Serie temporal de Tasa de Natalidad por provincia",
+       x = "Año", y = "Tasa por 100K") +
+  theme_minimal()
+
+ggplotly(p, tooltip = "text")
+```
+
+```{r}
+p2 <- ggplot(df, aes(x = Año, y = ipc_media_año, 
+                               group = nombre_provincia, color = nombre_provincia,
+                               text = paste("Provincia:", nombre_provincia,
+                                            "<br>Año:", Año,
+                                            "<br>Tasa:", round(ipc_media_año, 1)))) +
+  geom_line() +
+  labs(title = "Serie temporal del IPC por provincia",
+       x = "Año", y = "IPC") +
+  theme_minimal()
+
+ggplotly(p2, tooltip = "text")
+```
+
+## Indice de Moran
+
+```{r}
+sf_use_s2(FALSE)
+
+pov2 <- pov2 %>% dplyr::filter(!is.na(Cambios))
+
+cont.nb2 <- spdep::poly2nb(pov2)
+```
+
+```{r}
+cont.listw2 <- nb2listw(cont.nb2, style="W",zero.policy=T)	
+moran.test(pov2$tasa_nacim_media_año,listw = cont.listw2,zero.policy = T)
+```
+
+Como resultado vemos que el indice de Moran es de 0.56 que es un valor positivo y elevado indicando autocorrelacion espacial positiva (areas geográficamente cercanas tienden a tener tasas de naciemiento similares). Además el p-valor es bajo asi que es estadisticamente significativo
+
+### Evolutivo test Moran a lo largo de los años
+
+indice de Moran por cada tiempo. Así gráficas en el eje x el tiempo, y en el eje y el indice de moran
+
+```{r}
+# Crear un dataframe vacío para guardar resultados
+resultados_moran <- data.frame(
+  año = integer(),
+  moran_I = numeric(),
+  p_value = numeric()
+)
+
+# Obtener todos los años únicos
+años_unicos <- unique(pov2$Año)
+
+# Iterar por cada año
+for (año in años_unicos) {
+  # Filtrar los datos del año actual
+  pov3 <- pov2 %>% 
+    filter(Año == año, !is.na(tasa_nacim_media_año))
+  
+
+  # Crear la vecindad y lista de pesos espaciales
+  cont.nb <- spdep::poly2nb(pov3)
+  cont.listw <- nb2listw(cont.nb, style = "W", zero.policy = TRUE)
+  # Ejecutar el test de Moran
+  #mod = lm(pov3$tasa_nacim_media_año ~ pov3$ipc_media_año)
+  moran <- moran.test(pov3$tasa_nacim_media_año, 
+                      listw = cont.listw, zero.policy = TRUE)
+  # Extraer el índice de Moran
+  moran_I <- moran$estimate["Moran I statistic"]
+  p_valor <- moran$p.value
+  # Guardar el resultado
+  resultados_moran <- rbind(resultados_moran, data.frame(año = año, moran_I = moran_I, p_value = p_valor))
+}
+resultados_moran
+```
+
+Como los p-valores son todos pequeños, el índice es estadísticamente sigificativo asi que podremos interpretar su valor como evidencia de autocorrelación.
+
+```{r}
+ggplot(resultados_moran, aes(x = año, y = moran_I)) +
+  geom_line(color = "#2c7fb8", size = 1) +     # Línea
+  geom_point(color = "#253494", size = 2.5) +  # Puntos
+  labs(title = "Índice de Moran a lo largo del tiempo",
+       x = "Año",
+       y = "Índice de Moran") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    axis.title = element_text(size = 12)
+  )
+```
+
+Todos los indices de Moran son positivos pero estan entre 0.2 y 0.55 lo que indica que provincias cercanas tienden a tener tasas de natalidad similares pese a que ente los años 2011 y 2015 tenemos un indice de moran inferior a 0.3 que puede indicar que no haya patron espacial claro.
+
+# ANALISIS ESTADÍSTICO
+
+Construimos las matrices para el modelo:
+
+```{r}
+pov_ord <- pov2 %>%
+  filter(!is.na(Cambios)) %>%
+  arrange(Año, nombre_provincia) # MUY IMPORTANTE: primero por año, luego provincia
+
+# Crear la matriz W base (52x52) y convertir a matriz dispersa
+cont.nb3 <- poly2nb(pov_ord %>% filter(Año == 2003)) # cualquier año sirve pk es fija
+W_base <- nb2mat(cont.nb3, style = "W", zero.policy = TRUE)  # matriz normal
+W_sparse <- Matrix(W_base, sparse = TRUE)  # matriz dispersa: solo guarda los elementos diferentes de 0 y sus posiciones
+
+# Crear matriz identidad de orden 20 (años)
+I20 <- Diagonal(21)
+# Kronecker: W final para el modelo
+W_big <- kronecker(I20, W_sparse)
+
+# Crear matriz temporal g_{20x20}
+g_base <- matrix(0, nrow = 21, ncol = 21)
+for (i in 2:21) {
+  g_base[i, i - 1] <- 1
+}
+G_time <- Matrix(g_base, sparse = TRUE)
+
+# Identidad de provincias
+I52 <- Diagonal(52)
+# Kronecker: G final para el modelo
+G_big <- kronecker(G_time, I52)
+
+# Crear vectores Y e X
+Y <- pov_ord$Cambios
+X <- cbind(pov_ord$ipc_media_año, as.numeric(pov_ord$Año))
+```
+
+```{r}
+# Convertir W_big y G_big a matrices de adyacencia binarias (0/1)
+#W_adj <- as.matrix(W_big)
+#W_adj[W_adj != 0] <- 1
+
+#G_adj <- as.matrix(G_big)
+#G_adj[G_adj != 0] <- 1
+
+# Crear listas de vecinos
+W_nb <- mat2listw(W_big, style = "W", zero.policy = TRUE)
+G_nb <- mat2listw(G_big, style = "W", zero.policy = TRUE)
+
+# Creamos el data frame final con las variables necesarias
+modelo_df <- data.frame(
+  tasa = Y,
+  ipc = X[,1],
+  agno = X[,2])
+```
+
+### SARAR
+
+```{r}
+# Ejecutar modelo SARAR espaciotemporal
+modelo_sarar <- sacsarlm(
+  formula = tasa ~ ipc+agno,
+  data = modelo_df,
+  listw = W_nb,
+  listw2 = G_nb,
+  zero.policy = TRUE)
+
+summary(modelo_sarar)
+```
+
+Interpretacion:
+
+El coeficiente del IPC es positivo pero no significativo.
+
+Rho: mide autocorrelación espacial en la variable dependiente (Y) a través de la matriz W. El valor es pequeño, pero positivo y significativo lo que indica dependencia espacial leve: la tasa de nacimiento en una provincia depende un poco de las provincias vecinas en el mismo año.
+
+Lambda: mide la autocorrelación en el error entre periodos, a través de la matriz G (el tiempo). Nos ha dado exactamente 1 con error muy bajo lo indica que hay una altísima dependencia temporal.
+
+Parece que el modelo espaciotemporal mejora mucho respecto a uno lineal sin estos factores (el AIC reduce muchisimo)
+
+```{r}
+res_sarar<-residuals(modelo_sarar)
+moran.plot(res_sarar,listw = W_nb,listw2 = G_nb,zero.policy = TRUE)
+moran.test(res_sarar,listw = W_nb,zero.policy = TRUE)
+```
+
+Indice de moran positivo alto y sifnidicativo... Todavia hay autocorrelacion espacial significativa en los residuos.
+
+### SAR
+
+```{r}
+modelo_sar <- lagsarlm(
+  formula = tasa ~ ipc+agno,
+  data = modelo_df,
+  listw = W_nb,
+  zero.policy = TRUE
+)
+
+summary(modelo_sar)
+```
+
+### SEM
+
+```{r}
+modelo_sem <- errorsarlm(
+  formula = tasa ~ ipc+agno,
+  data = modelo_df,
+  listw = W_nb,
+  zero.policy = TRUE
+)
+
+summary(modelo_sem)
+```
+
+Segun el valor de AIC y Log likelihood, el modelo SARAR es el que mejor ajusta.

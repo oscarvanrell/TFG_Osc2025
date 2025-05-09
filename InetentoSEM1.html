@@ -100,68 +100,38 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'ggplot2' was built under R version 4.3.1</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'purrr' was built under R version 4.3.1</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'dplyr' was built under R version 4.3.1</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
 <pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-✔ dplyr     1.1.3     ✔ readr     2.1.4
-✔ forcats   1.0.0     ✔ stringr   1.5.0
-✔ ggplot2   3.4.3     ✔ tibble    3.2.1
-✔ lubridate 1.9.2     ✔ tidyr     1.3.0
-✔ purrr     1.0.2     
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+✔ purrr     1.0.4     
 ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ✖ dplyr::filter() masks stats::filter()
 ✖ dplyr::lag()    masks stats::lag()
 ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(spdep)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(spdep)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'spdep' was built under R version 4.3.3</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: spData</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'spData' was built under R version 4.3.3</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>To access larger datasets in this package, install the spDataLarge
+<pre><code>Cargando paquete requerido: spData
+To access larger datasets in this package, install the spDataLarge
 package with: `install.packages('spDataLarge',
 repos='https://nowosad.github.io/drat/', type='source')`
-Loading required package: sf</code></pre>
+Cargando paquete requerido: sf
+Linking to GEOS 3.13.0, GDAL 3.10.1, PROJ 9.5.1; sf_use_s2() is TRUE</code></pre>
 </div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(spatialreg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'sf' was built under R version 4.3.3</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Linking to GEOS 3.11.2, GDAL 3.8.2, PROJ 9.3.1; sf_use_s2() is TRUE</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(spatialreg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'spatialreg' was built under R version 4.3.3</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: Matrix</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'Matrix' was built under R version 4.3.1</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-Attaching package: 'Matrix'
+<pre><code>Cargando paquete requerido: Matrix
+
+Adjuntando el paquete: 'Matrix'
 
 The following objects are masked from 'package:tidyr':
 
     expand, pack, unpack
 
 
-Attaching package: 'spatialreg'
+Adjuntando el paquete: 'spatialreg'
 
 The following objects are masked from 'package:spdep':
 
@@ -170,169 +140,151 @@ The following objects are masked from 'package:spdep':
     set.coresOption, set.mcOption, set.VerboseOption,
     set.ZeroPolicyOption</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gamlss)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gamlss)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'gamlss' was built under R version 4.3.3</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: splines
-Loading required package: gamlss.data</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'gamlss.data' was built under R version 4.3.3</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-Attaching package: 'gamlss.data'
+<pre><code>Cargando paquete requerido: splines
+Cargando paquete requerido: gamlss.data
+
+Adjuntando el paquete: 'gamlss.data'
 
 The following object is masked from 'package:datasets':
 
     sleep
 
-Loading required package: gamlss.dist</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'gamlss.dist' was built under R version 4.3.3</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: nlme
+Cargando paquete requerido: gamlss.dist
+Cargando paquete requerido: nlme
 
-Attaching package: 'nlme'
+Adjuntando el paquete: 'nlme'
 
 The following object is masked from 'package:dplyr':
 
     collapse
 
-Loading required package: parallel
+Cargando paquete requerido: parallel
  **********   GAMLSS Version 5.4-22  ********** 
 For more on GAMLSS look at https://www.gamlss.com/
 Type gamlssNews() to see new features/changes/bug fixes.</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sphet)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'sphet' was built under R version 4.3.3</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xtable)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'xtable' was built under R version 4.3.3</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggspatial)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'ggspatial' was built under R version 4.3.3</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'readxl' was built under R version 4.3.3</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sphet)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xtable)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggspatial)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(<span class="st">"C:</span><span class="sc">\\</span><span class="st">Users</span><span class="sc">\\</span><span class="st">oscar</span><span class="sc">\\</span><span class="st">Documents</span><span class="sc">\\</span><span class="st">oscar</span><span class="sc">\\</span><span class="st">4t_carrera</span><span class="sc">\\</span><span class="st">TFG</span><span class="sc">\\</span><span class="st">TFG_Osc2025"</span>)<span class="co">#\\TFG_2025\\SIANE_CARTO_BASE_S_10M\\SIANE_CARTO_BASE_S_10M")</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="co">#cargamos los datos del mapa</span></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>pov<span class="ot">&lt;-</span><span class="fu">read_sf</span>(<span class="st">"SIANE_CARTO_BASE_S_10M/vigente/se89_10_admin_prov_a_x.shp"</span>, , <span class="at">options =</span> <span class="st">"ENCODING=UTF8"</span>)</span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="co">#preparamos datos de necimientos</span></span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>nacimientos <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"Nacimientos.csv"</span>, <span class="at">header =</span> <span class="cn">TRUE</span>, <span class="at">sep =</span> <span class="st">";"</span>)</span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>nacimientos<span class="sc">$</span>Total <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">."</span>, <span class="st">""</span>, nacimientos<span class="sc">$</span>Total))</span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>nacimientos_2020M01 <span class="ot">&lt;-</span> nacimientos <span class="sc">%&gt;%</span></span>
-<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Periodo <span class="sc">==</span> <span class="st">"2020M01"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Provincias <span class="sc">!=</span> <span class="st">"Total"</span>) </span>
-<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Separar la columna Provincias en codigo_provincia y nombre_provincia</span></span>
-<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">#separate(Provincias, into = c("codigo_provincia", "nombre_provincia"), sep = " ", extra = "merge")</span></span>
-<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a><span class="co">#head(nacimientos_2020M01,10)</span></span>
-<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a><span class="co">#preparamos datos de poblacion</span></span>
-<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>poblacion <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"Poblacion.csv"</span>, <span class="at">header =</span> <span class="cn">TRUE</span>, <span class="at">sep =</span> <span class="st">";"</span>)</span>
-<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>poblacion_2020M01 <span class="ot">&lt;-</span> poblacion <span class="sc">%&gt;%</span></span>
-<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Edad.simple <span class="sc">==</span> <span class="st">"Todas las edades"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Provincias <span class="sc">!=</span> <span class="st">"Total Nacional"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Sexo <span class="sc">==</span> <span class="st">"Total"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Periodo <span class="sc">==</span> <span class="st">"1 de enero de 2020"</span>)</span>
-<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a><span class="co">#head(poblacion_2020M01,10)</span></span>
-<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a><span class="co">#preparams datos de IPC</span></span>
-<span id="cb33-26"><a href="#cb33-26" aria-hidden="true" tabindex="-1"></a>IPC <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"IPCgrupos.csv"</span>, <span class="at">header =</span> <span class="cn">TRUE</span>, <span class="at">sep =</span> <span class="st">";"</span>)</span>
-<span id="cb33-27"><a href="#cb33-27" aria-hidden="true" tabindex="-1"></a>IPC_2020M01 <span class="ot">&lt;-</span> IPC <span class="sc">%&gt;%</span></span>
-<span id="cb33-28"><a href="#cb33-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Grupos.ECOICOP <span class="sc">==</span> <span class="st">"Índice general"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Provincias <span class="sc">!=</span> <span class="st">"Nacional"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Tipo.de.dato <span class="sc">==</span> <span class="st">"Índice"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-31"><a href="#cb33-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Periodo <span class="sc">==</span> <span class="st">"2020M01"</span>)</span>
-<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a><span class="co">#head(IPC_2020M01,10)</span></span>
-<span id="cb33-33"><a href="#cb33-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-34"><a href="#cb33-34" aria-hidden="true" tabindex="-1"></a><span class="co">#Unimos los datos</span></span>
-<span id="cb33-35"><a href="#cb33-35" aria-hidden="true" tabindex="-1"></a>datos <span class="ot">&lt;-</span> <span class="fu">merge</span>(<span class="at">x=</span>nacimientos_2020M01, <span class="at">y=</span>poblacion_2020M01, </span>
-<span id="cb33-36"><a href="#cb33-36" aria-hidden="true" tabindex="-1"></a>                    <span class="at">by.x=</span><span class="st">"Provincias"</span>, <span class="at">by.y=</span><span class="st">"Provincias"</span>, <span class="at">all.x=</span><span class="cn">TRUE</span>)</span>
-<span id="cb33-37"><a href="#cb33-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-38"><a href="#cb33-38" aria-hidden="true" tabindex="-1"></a><span class="co">#colnames(datos)</span></span>
-<span id="cb33-39"><a href="#cb33-39" aria-hidden="true" tabindex="-1"></a>datoss <span class="ot">&lt;-</span> <span class="fu">merge</span>(<span class="at">x=</span>datos, <span class="at">y=</span>IPC_2020M01, </span>
-<span id="cb33-40"><a href="#cb33-40" aria-hidden="true" tabindex="-1"></a>                    <span class="at">by.x=</span><span class="st">"Provincias"</span>, <span class="at">by.y=</span><span class="st">"Provincias"</span>, <span class="at">all.x=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb33-41"><a href="#cb33-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Provincias, Periodo.x, Total.x, Total.y, Total) <span class="sc">%&gt;%</span></span>
-<span id="cb33-42"><a href="#cb33-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Periodo =</span> Periodo.x, <span class="at">Total.Nacimientos =</span> Total.x, <span class="at">Total.Poblacion =</span> Total.y,  <span class="at">Total.IPC=</span>Total) <span class="sc">%&gt;%</span></span>
-<span id="cb33-43"><a href="#cb33-43" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Separar la columna Provincias en codigo_provincia y nombre_provincia</span></span>
-<span id="cb33-44"><a href="#cb33-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(Provincias, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"codigo_provincia"</span>, <span class="st">"nombre_provincia"</span>), <span class="at">sep =</span> <span class="st">" "</span>, <span class="at">extra =</span> <span class="st">"merge"</span>)</span>
-<span id="cb33-45"><a href="#cb33-45" aria-hidden="true" tabindex="-1"></a><span class="co">#colnames(datoss)</span></span>
-<span id="cb33-46"><a href="#cb33-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-47"><a href="#cb33-47" aria-hidden="true" tabindex="-1"></a><span class="co">#unimos con el mapa</span></span>
-<span id="cb33-48"><a href="#cb33-48" aria-hidden="true" tabindex="-1"></a>pov2 <span class="ot">&lt;-</span> <span class="fu">merge</span>(<span class="at">x=</span>pov, <span class="at">y=</span>datoss, </span>
-<span id="cb33-49"><a href="#cb33-49" aria-hidden="true" tabindex="-1"></a>                    <span class="at">by.x=</span><span class="st">"id_prov"</span>, <span class="at">by.y=</span><span class="st">"codigo_provincia"</span>, <span class="at">all.x=</span><span class="cn">TRUE</span>)</span>
-<span id="cb33-50"><a href="#cb33-50" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(pov2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"DatosIniciales.RData"</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co">#cargamos los datos del mapa</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>pov<span class="ot">&lt;-</span><span class="fu">read_sf</span>(<span class="st">"shapefiles_provincias_espana/shapefiles_provincias_espana.shp"</span>, , <span class="at">options =</span> <span class="st">"ENCODING=UTF8"</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>nacimientos_2020M01 <span class="ot">&lt;-</span> Nacimientos <span class="sc">%&gt;%</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Periodo <span class="sc">==</span> <span class="st">"2020M01"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Provincias <span class="sc">!=</span> <span class="st">"Total"</span>) </span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Separar la columna Provincias en codigo_provincia y nombre_provincia</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">#separate(Provincias, into = c("codigo_provincia", "nombre_provincia"), sep = " ", extra = "merge")</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co">#head(nacimientos_2020M01,10)</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="co">#preparamos datos de poblacion</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>poblacion_2020M01 <span class="ot">&lt;-</span> Poblacion <span class="sc">%&gt;%</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edad simple</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Todas las edades"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Provincias <span class="sc">!=</span> <span class="st">"Total Nacional"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Sexo <span class="sc">==</span> <span class="st">"Total"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Periodo <span class="sc">==</span> <span class="st">"1 de enero de 2020"</span>)</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a><span class="co">#head(poblacion_2020M01,10)</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="co">#preparams datos de IPC</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>IPC_2020M01 <span class="ot">&lt;-</span> IPC_Grupos <span class="sc">%&gt;%</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Grupos ECOICOP</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Índice general"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Provincias <span class="sc">!=</span> <span class="st">"Nacional"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Tipo de dato</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Índice"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Periodo <span class="sc">==</span> <span class="st">"2020M01"</span>)</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a><span class="co">#head(IPC_2020M01,10)</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="co">#Unimos los datos</span></span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>datos <span class="ot">&lt;-</span> <span class="fu">merge</span>(<span class="at">x=</span>nacimientos_2020M01, <span class="at">y=</span>poblacion_2020M01, </span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>                    <span class="at">by.x=</span><span class="st">"Provincias"</span>, <span class="at">by.y=</span><span class="st">"Provincias"</span>, <span class="at">all.x=</span><span class="cn">TRUE</span>)</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a><span class="co">#colnames(datos)</span></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>datos <span class="ot">&lt;-</span> <span class="fu">merge</span>(<span class="at">x=</span>datos, <span class="at">y=</span>IPC_2020M01, </span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>                    <span class="at">by.x=</span><span class="st">"Provincias"</span>, <span class="at">by.y=</span><span class="st">"Provincias"</span>, <span class="at">all.x=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Provincias, Periodo.x, Total.x, Total.y, Total) <span class="sc">%&gt;%</span></span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Periodo =</span> Periodo.x, <span class="at">Total.Nacimientos =</span> Total.x, <span class="at">Total.Poblacion =</span> Total.y,  <span class="at">Total.IPC=</span>Total) <span class="sc">%&gt;%</span></span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Separar la columna Provincias en codigo_provincia y nombre_provincia</span></span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(Provincias, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"codigo_provincia"</span>, <span class="st">"nombre_provincia"</span>), <span class="at">sep =</span> <span class="st">" "</span>, <span class="at">extra =</span> <span class="st">"merge"</span>)</span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a><span class="co">#colnames(datoss)</span></span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a><span class="co">#unimos con el mapa</span></span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>pov2 <span class="ot">&lt;-</span> <span class="fu">merge</span>(<span class="at">x=</span>pov, <span class="at">y=</span>datos, </span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>                    <span class="at">by.x=</span><span class="st">"codigo"</span>, <span class="at">by.y=</span><span class="st">"codigo_provincia"</span>, <span class="at">all.x=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">tasaNaci =</span> <span class="fl">1E5</span><span class="sc">*</span>Total.Nacimientos<span class="sc">/</span>Total.Poblacion)</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(pov2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1] "id_prov"           "fecha_alta"        "fecha_baja"       
- [4] "rotulo"            "id_ccaa"           "x_cvi"            
- [7] "y_cvi"             "x_cap"             "y_cap"            
-[10] "rotulo2"           "st_area_sh"        "st_length_"       
-[13] "nombre_provincia"  "Periodo"           "Total.Nacimientos"
-[16] "Total.Poblacion"   "Total.IPC"         "geometry"         </code></pre>
+<pre><code> [1] "codigo"            "cartodb_id"        "ccaa"             
+ [4] "cod_ccaa"          "texto_alt"         "texto"            
+ [7] "nombre_provincia"  "Periodo"           "Total.Nacimientos"
+[10] "Total.Poblacion"   "Total.IPC"         "geometry"         
+[13] "tasaNaci"         </code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">#CREACION DEL MAPA</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">geom_sf</span>(<span class="at">data=</span>pov2, <span class="fu">aes</span>(<span class="at">fill =</span> Total.Nacimientos))<span class="sc">+</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_sf</span>()</span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> p1 <span class="sc">+</span>ggspatial<span class="sc">::</span><span class="fu">annotation_scale</span>(</span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">location =</span> <span class="st">"tl"</span>,</span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">bar_cols =</span> <span class="fu">c</span>(<span class="st">"grey60"</span>, <span class="st">"white"</span>)</span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>  ggspatial<span class="sc">::</span><span class="fu">annotation_north_arrow</span>(</span>
-<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">location =</span> <span class="st">"bl"</span>, <span class="at">which_north =</span> <span class="st">"true"</span>,</span>
-<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">pad_x =</span> <span class="fu">unit</span>(<span class="dv">0</span>, <span class="st">"in"</span>), <span class="at">pad_y =</span> <span class="fu">unit</span>(<span class="dv">0</span>, <span class="st">"in"</span>),</span>
-<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">style =</span> ggspatial<span class="sc">::</span><span class="fu">north_arrow_nautical</span>(</span>
-<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">fill =</span> <span class="fu">c</span>(<span class="st">"grey40"</span>, <span class="st">"white"</span>),</span>
-<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">line_col =</span> <span class="st">"grey20"</span></span>
-<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>  )<span class="sc">+</span></span>
-<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Longitude"</span>)<span class="sc">+</span></span>
-<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Latitude"</span>)<span class="sc">+</span></span>
-<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradientn</span>(<span class="at">colours =</span> <span class="fu">c</span>(<span class="st">"darkred"</span>, <span class="st">"orange"</span>,</span>
-<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>                                   <span class="st">"yellow"</span>),</span>
-<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>                       <span class="at">name =</span> <span class="st">"Nacimientos 2020M01"</span>, ,<span class="at">na.value=</span><span class="st">"white"</span>)</span>
-<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"NacimientosSpain.pdf"</span>,p1, <span class="at">dpi=</span><span class="dv">320</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#CREACION DEL MAPA</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">geom_sf</span>(<span class="at">data=</span>pov2, <span class="fu">aes</span>(<span class="at">fill =</span> tasaNaci))<span class="sc">+</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_sf</span>()</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> p1 <span class="sc">+</span>ggspatial<span class="sc">::</span><span class="fu">annotation_scale</span>(</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">location =</span> <span class="st">"tl"</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">bar_cols =</span> <span class="fu">c</span>(<span class="st">"grey60"</span>, <span class="st">"white"</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  ggspatial<span class="sc">::</span><span class="fu">annotation_north_arrow</span>(</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">location =</span> <span class="st">"bl"</span>, <span class="at">which_north =</span> <span class="st">"true"</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">pad_x =</span> <span class="fu">unit</span>(<span class="dv">0</span>, <span class="st">"in"</span>), <span class="at">pad_y =</span> <span class="fu">unit</span>(<span class="dv">0</span>, <span class="st">"in"</span>),</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">style =</span> ggspatial<span class="sc">::</span><span class="fu">north_arrow_nautical</span>(</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">fill =</span> <span class="fu">c</span>(<span class="st">"grey40"</span>, <span class="st">"white"</span>),</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">line_col =</span> <span class="st">"grey20"</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  )<span class="sc">+</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Longitude"</span>)<span class="sc">+</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Latitude"</span>)<span class="sc">+</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradientn</span>(<span class="at">colours =</span> <span class="fu">c</span>(<span class="st">"darkred"</span>, <span class="st">"orange"</span>,</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>                                   <span class="st">"yellow"</span>),</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>                       <span class="at">name =</span> <span class="st">"Nacimientos 2020M01"</span>, ,<span class="at">na.value=</span><span class="st">"white"</span>)</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>p1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Scale on map varies by more than 10%, scale bar may be inaccurate</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="InetentoSEM1_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"NacimientosSpain.pdf"</span>,p1, <span class="at">dpi=</span><span class="dv">320</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Saving 7 x 5 in image
 Scale on map varies by more than 10%, scale bar may be inaccurate</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co">#TERRAPLANISTA</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="do">##pov&lt;- spTransform(pov, CRS("+proj=longlat +datum=NAD83"))</span></span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Matriz de pesos espaciales</span></span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sf_use_s2</span>(<span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">#TERRAPLANISTA</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="do">##pov&lt;- spTransform(pov, CRS("+proj=longlat +datum=NAD83"))</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Matriz de pesos espaciales</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sf_use_s2</span>(<span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Spherical geometry (s2) switched off</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>pov2 <span class="ot">&lt;-</span> pov2 <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Total.Nacimientos))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>pov2 <span class="ot">&lt;-</span> pov2 <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Total.Nacimientos))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co">#CALCULA VECINOS DE </span><span class="al">TODO</span><span class="co"> POLIGONO (1 SI, 0 NO)</span></span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="co">#pov&lt;-pov[!is.na(pov@data$GINI),]</span></span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="do">### Matriz de vecinos</span></span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>cont.nb <span class="ot">&lt;-</span> spdep<span class="sc">::</span><span class="fu">poly2nb</span>(pov2)     <span class="co"># from the spdep:: package</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">#CALCULA VECINOS DE </span><span class="al">TODO</span><span class="co"> POLIGONO (1 SI, 0 NO)</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co">#pov&lt;-pov[!is.na(pov@data$GINI),]</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="do">### Matriz de vecinos</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>cont.nb <span class="ot">&lt;-</span> spdep<span class="sc">::</span><span class="fu">poly2nb</span>(pov2)     <span class="co"># from the spdep:: package</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>although coordinates are longitude/latitude, st_intersects assumes that they
 are planar</code></pre>
@@ -342,367 +294,117 @@ are planar</code></pre>
 if this seems unexpected, try increasing the snap argument.</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning in spdep::poly2nb(pov2): neighbour object has 4 sub-graphs;
+<pre><code>Warning in spdep::poly2nb(pov2): neighbour object has 6 sub-graphs;
 if this sub-graph count seems unexpected, try increasing the snap argument.</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co">#CREA LA W ESTANDARIZADA PARA EL SARAR</span></span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>cont.listw <span class="ot">&lt;-</span> <span class="fu">nb2listw</span>(cont.nb, <span class="at">style=</span><span class="st">"W"</span>,<span class="at">zero.policy=</span>T)        <span class="co"># from the spdep:: package</span></span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a><span class="co"># PARA VER DEPENDENCIA ESPACIAL (AUTOCORRELACION ESPACIAL)</span></span>
-<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="fu">moran.plot</span>(pov2<span class="sc">$</span>Total.Nacimientos,<span class="at">listw =</span> cont.listw,<span class="at">zero.policy =</span> T)</span>
-<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a><span class="fu">moran.test</span>(pov2<span class="sc">$</span>Total.Nacimientos,<span class="at">listw =</span> cont.listw,<span class="at">zero.policy =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">#CREA LA W ESTANDARIZADA PARA EL SARAR</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>cont.listw <span class="ot">&lt;-</span> <span class="fu">nb2listw</span>(cont.nb, <span class="at">style=</span><span class="st">"W"</span>,<span class="at">zero.policy=</span>T)        <span class="co"># from the spdep:: package</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="co"># PARA VER DEPENDENCIA ESPACIAL (AUTOCORRELACION ESPACIAL)</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="fu">moran.plot</span>(pov2<span class="sc">$</span>tasaNaci,<span class="at">listw =</span> cont.listw,<span class="at">zero.policy =</span> T)</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="fu">moran.test</span>(pov2<span class="sc">$</span>tasaNaci,<span class="at">listw =</span> cont.listw,<span class="at">zero.policy =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
     Moran I test under randomisation
 
-data:  pov2$Total.Nacimientos  
+data:  pov2$tasaNaci  
 weights: cont.listw  
 n reduced by no-neighbour observations  
 
-Moran I statistic standard deviate = 0.11771, p-value = 0.4531
+Moran I statistic standard deviate = 3.4092, p-value = 0.0003258
 alternative hypothesis: greater
 sample estimates:
 Moran I statistic       Expectation          Variance 
-      -0.01257876       -0.02173913        0.00605604 </code></pre>
+      0.273291739      -0.021739130       0.007489127 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># SI NO HAY DEPENDENCIA ESPACIAL ES EQUIVALENTE A PERMUTACIONES (DA IGUAL SI ES ALICANTE O ALBACETE) </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># SI NO HAY DEPENDENCIA ESPACIAL ES EQUIVALENTE A PERMUTACIONES (DA IGUAL SI ES ALICANTE O ALBACETE) </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="InetentoSEM1_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="InetentoSEM1_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>EN NUESTRO CASO EL P-VALOR ES &gt;0.05 ASI QUE NO SE RECHAZA LA HIPÓTESIS NULA, LO QUE SUGIERE AUSENCIA DE AUTOCORRELACIÓN ESPACIAL (LOS VALORES DISTRIBUIDOS ALEATORIAMENTE)</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(pov2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(pov2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1] "id_prov"           "fecha_alta"        "fecha_baja"       
- [4] "rotulo"            "id_ccaa"           "x_cvi"            
- [7] "y_cvi"             "x_cap"             "y_cap"            
-[10] "rotulo2"           "st_area_sh"        "st_length_"       
-[13] "nombre_provincia"  "Periodo"           "Total.Nacimientos"
-[16] "Total.Poblacion"   "Total.IPC"         "geometry"         </code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(pov2,<span class="dv">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Simple feature collection with 50 features and 17 fields
-Geometry type: MULTIPOLYGON
-Dimension:     XY
-Bounding box:  xmin: -9.298027 ymin: 35.25069 xmax: 4.314508 ymax: 43.77594
-Geodetic CRS:  ETRS89
-First 10 features:
-   id_prov fecha_alta fecha_baja           rotulo id_ccaa      x_cvi    y_cvi
-1       01 2011-07-06 -001-11-30      Araba/Álava      75 -2.7298774 42.83740
-2       02 2005-12-31 -001-11-30         Albacete      68 -1.9787131 38.82608
-3       03 2005-12-31 -001-11-30 Alacant/Alicante      77 -0.5707361 38.47910
-4       04 2005-12-31 -001-11-30          Almería      61 -2.3447920 37.19845
-5       05 2005-12-31 -001-11-30            Ávila      67 -4.9426875 40.57015
-6       06 2005-12-31 -001-11-30          Badajoz      70 -6.1438558 38.70947
-7       07 2005-12-31 -001-11-30    Illes Balears      64  2.9099015 39.57420
-8       08 2005-12-31 -001-11-30        Barcelona      69  1.9843126 41.73476
-9       09 2005-12-31 -001-11-30           Burgos      67 -3.5878713 42.36627
-10      10 2005-12-31 -001-11-30          Cáceres      70 -6.1601626 39.71136
-        x_cap    y_cap rotulo2 st_area_sh st_length_ nombre_provincia Periodo
-1  -2.6728194 42.85055     n_p  0.3387298   5.047367      Araba/Álava 2020M01
-2  -1.8557749 38.99589     n_p  1.5429472   6.997302         Albacete 2020M01
-3  -0.4832576 38.34588     n_p  0.5959711   4.384493 Alicante/Alacant 2020M01
-4  -2.4641300 36.83895     n_p  0.8895949   4.890166          Almería 2020M01
-5  -4.6977127 40.65585     n_p  0.8672804   5.270146            Ávila 2020M01
-6  -6.9709874 38.87873     n_p  2.2554017   9.801352          Badajoz 2020M01
-7   2.6517144 39.57119     n_p  0.5297253   6.817833   Balears, Illes 2020M01
-8   2.1762459 41.38426     n_p  0.8398649   5.315204        Barcelona 2020M01
-9  -3.7042333 42.34109     n_p  1.5678552   8.844184           Burgos 2020M01
-10 -6.3712042 39.47315     n_p  2.0848060   8.706561          Cáceres 2020M01
-   Total.Nacimientos Total.Poblacion Total.IPC                       geometry
-1                190         332.874    96,947 MULTIPOLYGON (((-2.964489 4...
-2                243         387.838    97,063 MULTIPOLYGON (((-1.488485 3...
-3               1225       1.877.627    96,943 MULTIPOLYGON (((0.01060632 ...
-4                585         724.003    97,158 MULTIPOLYGON (((-2.184944 3...
-5                 62         158.819    96,791 MULTIPOLYGON (((-4.722108 4...
-6                397         672.045    96,656 MULTIPOLYGON (((-5.046936 3...
-7                884       1.176.816    96,983 MULTIPOLYGON (((3.192863 39...
-8               3877       5.690.371    97,438 MULTIPOLYGON (((2.778271 41...
-9                186         357.121    97,052 MULTIPOLYGON (((-3.22356 43...
-10               221         392.925    96,829 MULTIPOLYGON (((-6.191227 4...</code></pre>
+<pre><code> [1] "codigo"            "cartodb_id"        "ccaa"             
+ [4] "cod_ccaa"          "texto_alt"         "texto"            
+ [7] "nombre_provincia"  "Periodo"           "Total.Nacimientos"
+[10] "Total.Poblacion"   "Total.IPC"         "geometry"         
+[13] "tasaNaci"         </code></pre>
 </div>
 </div>
 <section id="un-sem" class="level1">
 <h1>Un SEM</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>m<span class="ot">&lt;-</span><span class="fu">errorsarlm</span>(Total.Nacimientos<span class="sc">~</span>Total.Poblacion<span class="sc">+</span><span class="st">`</span><span class="at">Total.IPC</span><span class="st">`</span></span>
-<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>           ,<span class="at">data=</span>pov2,<span class="at">list=</span>cont.listw,<span class="at">zero.policy =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in errorsarlm(Total.Nacimientos ~ Total.Poblacion + Total.IPC, data =
-pov2, : Aliased variables found: Total.IPC96,537 Total.IPC96,586
-Total.IPC96,656 Total.IPC96,697 Total.IPC96,707 Total.IPC96,723 Total.IPC96,728
-Total.IPC96,738 Total.IPC96,739 Total.IPC96,791 Total.IPC96,806 Total.IPC96,816
-Total.IPC96,819 Total.IPC96,821 Total.IPC96,829 Total.IPC96,847 Total.IPC96,895
-Total.IPC96,912 Total.IPC96,923 Total.IPC96,942 Total.IPC96,943 Total.IPC96,947
-Total.IPC96,952 Total.IPC96,953 Total.IPC96,968 Total.IPC96,973 Total.IPC96,977
-Total.IPC96,983 Total.IPC97,016 Total.IPC97,045 Total.IPC97,052 Total.IPC97,063
-Total.IPC97,07 Total.IPC97,087 Total.IPC97,089 Total.IPC97,116 Total.IPC97,143
-Total.IPC97,158 Total.IPC97,17 Total.IPC97,196 Total.IPC97,208 Total.IPC97,225
-Total.IPC97,246 Total.IPC97,255 Total.IPC97,276 Total.IPC97,302 Total.IPC97,424
-Total.IPC97,438 Total.IPC97,528</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value
-
-Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value
-
-Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value
-
-Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value
-
-Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value
-
-Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value
-
-Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in log(s2): Se han producido NaNs</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in optimize(sar.error.f, interval = interval, maximum = TRUE, tol =
-con$tol.opt, : NA/Inf replaced by maximum positive value</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m,<span class="at">Nagelkerke=</span>T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>m<span class="ot">&lt;-</span><span class="fu">errorsarlm</span>(tasaNaci<span class="sc">~</span>Total.IPC,</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">data=</span>pov2,<span class="at">list=</span>cont.listw,<span class="at">zero.policy =</span> T)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m,<span class="at">Nagelkerke=</span>T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
-Call:errorsarlm(formula = Total.Nacimientos ~ Total.Poblacion + Total.IPC, 
-    data = pov2, listw = cont.listw, zero.policy = T)
+Call:
+errorsarlm(formula = tasaNaci ~ Total.IPC, data = pov2, listw = cont.listw, 
+    zero.policy = T)
 
 Residuals:
-   Min     1Q Median     3Q    Max 
-     0      0      0      0      0 
+     Min       1Q   Median       3Q      Max 
+-26.4408  -7.4995  -2.7553   1.0559  29.1097 
 
 Type: error 
 Regions with no neighbours included:
- 7 49 50 
+ 7 35 38 51 52 
 Coefficients: (asymptotic standard errors) 
-    (49 not defined because of singularities)
-                         Estimate Std. Error z value Pr(&gt;|z|)
-(Intercept)                   442        NaN     NaN      NaN
-Total.Poblacion1.121.994      101        NaN     NaN      NaN
-Total.Poblacion1.154.696      198        NaN     NaN      NaN
-Total.Poblacion1.176.816      442        NaN     NaN      NaN
-Total.Poblacion1.247.160      354        NaN     NaN      NaN
-Total.Poblacion1.509.077      803        NaN     NaN      NaN
-Total.Poblacion1.683.380      634        NaN     NaN      NaN
-Total.Poblacion1.877.627      783        NaN     NaN      NaN
-Total.Poblacion1.947.848      921        NaN     NaN      NaN
-Total.Poblacion134.085       -346        NaN     NaN      NaN
-Total.Poblacion153.641       -353        NaN     NaN      NaN
-Total.Poblacion158.819       -380        NaN     NaN      NaN
-Total.Poblacion160.357       -360        NaN     NaN      NaN
-Total.Poblacion171.301       -381        NaN     NaN      NaN
-Total.Poblacion197.537       -348        NaN     NaN      NaN
-Total.Poblacion2.584.654     1254        NaN     NaN      NaN
-Total.Poblacion222.767       -319        NaN     NaN      NaN
-Total.Poblacion262.985       -283        NaN     NaN      NaN
-Total.Poblacion306.825       -319        NaN     NaN      NaN
-Total.Poblacion318.703       -251        NaN     NaN      NaN
-Total.Poblacion327.573       -292        NaN     NaN      NaN
-Total.Poblacion330.834       -287        NaN     NaN      NaN
-Total.Poblacion332.874       -252        NaN     NaN      NaN
-Total.Poblacion357.121       -256        NaN     NaN      NaN
-Total.Poblacion387.838       -199        NaN     NaN      NaN
-Total.Poblacion392.925       -221        NaN     NaN      NaN
-Total.Poblacion437.508       -150        NaN     NaN      NaN
-Total.Poblacion456.697       -236        NaN     NaN      NaN
-Total.Poblacion494.817       -178        NaN     NaN      NaN
-Total.Poblacion5.690.371     3435        NaN     NaN      NaN
-Total.Poblacion520.904       -153        NaN     NaN      NaN
-Total.Poblacion525.333       -100        NaN     NaN      NaN
-Total.Poblacion583.011       -130        NaN     NaN      NaN
-Total.Poblacion584.201        -22        NaN     NaN      NaN
-Total.Poblacion6.720.310     4163        NaN     NaN      NaN
-Total.Poblacion630.524        -33        NaN     NaN      NaN
-Total.Poblacion659.907         -6        NaN     NaN      NaN
-Total.Poblacion672.045        -45        NaN     NaN      NaN
-Total.Poblacion704.792         29        NaN     NaN      NaN
-Total.Poblacion724.003        143        NaN     NaN      NaN
-Total.Poblacion724.347        -16        NaN     NaN      NaN
-Total.Poblacion776.698        202        NaN     NaN      NaN
-Total.Poblacion780.825         60        NaN     NaN      NaN
-Total.Poblacion815.746        141        NaN     NaN      NaN
-Total.Poblacion84.502        -354        NaN     NaN      NaN
-Total.Poblacion86.558        -330        NaN     NaN      NaN
-Total.Poblacion89.302        -398        NaN     NaN      NaN
-Total.Poblacion921.966        151        NaN     NaN      NaN
-Total.Poblacion946.213         42        NaN     NaN      NaN
-Total.Poblacion973.740        168        NaN     NaN      NaN
-Total.IPC96,537                NA         NA      NA       NA
-Total.IPC96,586                NA         NA      NA       NA
-Total.IPC96,656                NA         NA      NA       NA
-Total.IPC96,697                NA         NA      NA       NA
-Total.IPC96,707                NA         NA      NA       NA
-Total.IPC96,723                NA         NA      NA       NA
-Total.IPC96,728                NA         NA      NA       NA
-Total.IPC96,738                NA         NA      NA       NA
-Total.IPC96,739                NA         NA      NA       NA
-Total.IPC96,791                NA         NA      NA       NA
-Total.IPC96,806                NA         NA      NA       NA
-Total.IPC96,816                NA         NA      NA       NA
-Total.IPC96,819                NA         NA      NA       NA
-Total.IPC96,821                NA         NA      NA       NA
-Total.IPC96,829                NA         NA      NA       NA
-Total.IPC96,847                NA         NA      NA       NA
-Total.IPC96,895                NA         NA      NA       NA
-Total.IPC96,912                NA         NA      NA       NA
-Total.IPC96,923                NA         NA      NA       NA
-Total.IPC96,942                NA         NA      NA       NA
-Total.IPC96,943                NA         NA      NA       NA
-Total.IPC96,947                NA         NA      NA       NA
-Total.IPC96,952                NA         NA      NA       NA
-Total.IPC96,953                NA         NA      NA       NA
-Total.IPC96,968                NA         NA      NA       NA
-Total.IPC96,973                NA         NA      NA       NA
-Total.IPC96,977                NA         NA      NA       NA
-Total.IPC96,983                NA         NA      NA       NA
-Total.IPC97,016                NA         NA      NA       NA
-Total.IPC97,045                NA         NA      NA       NA
-Total.IPC97,052                NA         NA      NA       NA
-Total.IPC97,063                NA         NA      NA       NA
-Total.IPC97,07                 NA         NA      NA       NA
-Total.IPC97,087                NA         NA      NA       NA
-Total.IPC97,089                NA         NA      NA       NA
-Total.IPC97,116                NA         NA      NA       NA
-Total.IPC97,143                NA         NA      NA       NA
-Total.IPC97,158                NA         NA      NA       NA
-Total.IPC97,17                 NA         NA      NA       NA
-Total.IPC97,196                NA         NA      NA       NA
-Total.IPC97,208                NA         NA      NA       NA
-Total.IPC97,225                NA         NA      NA       NA
-Total.IPC97,246                NA         NA      NA       NA
-Total.IPC97,255                NA         NA      NA       NA
-Total.IPC97,276                NA         NA      NA       NA
-Total.IPC97,302                NA         NA      NA       NA
-Total.IPC97,424                NA         NA      NA       NA
-Total.IPC97,438                NA         NA      NA       NA
-Total.IPC97,528                NA         NA      NA       NA
+             Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) 1393.2762   445.8907  3.1247 0.001780
+Total.IPC    -13.5430     4.5983 -2.9452 0.003227
 
-Lambda: -0.61783, LR test value: -Inf, p-value: &lt; 2.22e-16
-Asymptotic standard error: NaN
-    z-value: NaN, p-value: NA
-Wald statistic: NaN, p-value: NA
+Lambda: 0.8606, LR test value: 20.832, p-value: 5.0128e-06
+Asymptotic standard error: 0.064908
+    z-value: 13.259, p-value: &lt; 2.22e-16
+Wald statistic: 175.79, p-value: &lt; 2.22e-16
 
-Log likelihood: 475.5789 for error model
-ML residual variance (sigma squared): 0, (sigma: 0)
-Nagelkerke pseudo-R-squared: 1 
-Number of observations: 50 
-Number of parameters estimated: 52 
-AIC: -847.16, (AIC for lm: -Inf)</code></pre>
+Log likelihood: -203.9426 for error model
+ML residual variance (sigma squared): 117.75, (sigma: 10.851)
+Nagelkerke pseudo-R-squared: 0.37625 
+Number of observations: 52 
+Number of parameters estimated: 4 
+AIC: 415.89, (AIC for lm: 434.72)</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="co">#res_sem&lt;-residuals(m)</span></span>
-<span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a><span class="co">#moran.plot(res_sem,listw = cont.listw,zero.policy = T)</span></span>
-<span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a><span class="co">#moran.test(res_sem,listw = cont.listw,zero.policy = T)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>res_sem<span class="ot">&lt;-</span><span class="fu">residuals</span>(m)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">moran.plot</span>(res_sem,<span class="at">listw =</span> cont.listw,<span class="at">zero.policy =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="InetentoSEM1_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">moran.test</span>(res_sem,<span class="at">listw =</span> cont.listw,<span class="at">zero.policy =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Moran I test under randomisation
+
+data:  res_sem  
+weights: cont.listw  
+n reduced by no-neighbour observations  
+
+Moran I statistic standard deviate = -0.92963, p-value = 0.8237
+alternative hypothesis: greater
+sample estimates:
+Moran I statistic       Expectation          Variance 
+     -0.107336303      -0.021739130       0.008478178 </code></pre>
+</div>
 </div>
 </section>
 
