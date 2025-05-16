@@ -68,6 +68,7 @@ datos2 <- merge(x=datos, y=poblacion_filtrado,
 
 # De momento consideraremos la media anual 
 df <- datos2 %>%
+  filter(nombre_provincia != "residente") %>%
   group_by(codigo_provincia, nombre_provincia, Año) %>%
   summarise(tasa_nacim_media_año = mean(tasaNaci, na.rm = TRUE),
             nacimientosaño = sum(Total.Nacimientos, na.rm = TRUE),
@@ -80,6 +81,8 @@ df <- datos2 %>%
 pov2 <- merge(x=pov, y=df, 
                     by.x="codigo", by.y="codigo_provincia", all.x=TRUE)
 ```
+
+Obtenemos una nueva variable llamada 'Cambios' que es la variacion porcentual del numero de nacimientos con respecto al año anterior. Responde a la pregunta de cuanto ha cambiado el num total de nacimientoes este año respecto al anterior, expresado como porcentaje del valor del año anterior. Ejemplo: Si en una provincia en 2002 hubo 1000 nacimientos y en 2003 hubo 1200, la variable actuaria como $$\frac{1200-1000}{1000}=\frac{200}{1000}=0.2$$ Lo que implica que habria subido un 20% respecto al año anterior
 
 ## Mapa de la tasa media de natalidad por provincia
 
@@ -129,32 +132,19 @@ ggscatter(pov2, x = "ipc_media_año", y = "Cambios",
           cor.coef = TRUE, cor.method = "pearson")
 ```
 
-Correlacion positiva debil, pero con p-valor de 0.053\>0.05 asi que podriamos decir que no es muy significativo estadisticamente...
+Correlacion negativa debil, pero con p-valor de 2.2e-16 \< 0.05 asi que muy significativo estadisticamente.
 
 ## Analisis temporal tasa natalidad e IPC
 
 ```{r}
-df5 <- datos2 %>%
-  filter(nombre_provincia != "residente") %>%
-  group_by(codigo_provincia, nombre_provincia, Año) %>%
-  summarise(nacimientosaño = sum(Total.Nacimientos, na.rm = TRUE),.groups = "drop")
-
-## Calcular los cambios
-
-df5 <- df5 %>% 
-  dplyr::arrange(codigo_provincia,,nombre_provincia, Año) %>% 
-  dplyr::group_by(codigo_provincia) %>%
-  dplyr::mutate(Cambios =(nacimientosaño-lag(nacimientosaño))/lag(nacimientosaño)) %>% 
-  ungroup()
-
-p <- ggplot(df5, aes(x = Año, y = Cambios, 
+p <- ggplot(df, aes(x = Año, y = Cambios, 
                                group = nombre_provincia, color = nombre_provincia,
                                text = paste("Provincia:", nombre_provincia,
                                             "<br>Año:", Año,
-                                            "<br>Tasa:", round(nacimientosaño, 1)))) +
+                                            "<br>Tasa:", round(Cambios, 1)))) +
   geom_line() +
-  labs(title = "Serie temporal de Tasa de Natalidad por provincia",
-       x = "Año", y = "Tasa por 100K") +
+  labs(title = "Serie temporal de Tasa de Variación de Natalidad por provincia",
+       x = "Año", y = "Tasa Variación Natalidad") +
   theme_minimal()
 
 ggplotly(p, tooltip = "text")
@@ -165,6 +155,8 @@ ggplotly(p, tooltip = "text")
 El test de Moran para datos panel \[está explicado acá\]<https://www.sciencedirect.com/science/article/abs/pii/S026499931400162X>()
 
 ```{r}
+library(splm)
+
 pov_ord <- pov2 %>%
   filter(!is.na(Cambios)) %>%
   arrange(Año, nombre_provincia) # MUY IMPORTANTE: primero por año, luego provincia
@@ -183,12 +175,14 @@ dataTest = plm::pdata.frame(pov_ord, index=c("codigo", "Año"))
 splm::slmtest(Cambios~1, data=dataTest, listw=W_base)
 ```
 
+Como el p-valor es pequño, vemos que existe dependencia espacial en los errores de los datos panel usand un LM test para dependencia espacial del error en modelos de panel
+
 ```{r}
 W_base <- mat2listw(W_big, style = "W", zero.policy = TRUE)
 moran.test(pov_ord$Cambios,listw = W_base,zero.policy = T)
 ```
 
-Como resultado vemos que el indice de Moran es de 0.56 que es un valor positivo y elevado indicando autocorrelacion espacial positiva (areas geográficamente cercanas tienden a tener tasas de naciemiento similares). Además el p-valor es bajo asi que es estadisticamente significativo
+Como resultado vemos que el indice de Moran es de 0.51 que es un valor positivo y elevado indicando autocorrelacion espacial positiva (areas geográficamente cercanas tienden a tener tasas de naciemiento similares). Además el p-valor es bajo asi que es estadisticamente significativo
 
 # ANALISIS ESTADÍSTICO
 
@@ -251,7 +245,7 @@ moran.test(Y,listw = W_nb,zero.policy = TRUE)
 ```{r}
 # Ejecutar modelo SARAR espaciotemporal
 modelo_sarar <- sacsarlm(
-  formula = tasa ~ ipc+agno,
+  formula = tasa ~ ipc*agno,
   data = modelo_df,
   listw = W_nb,
   listw2 = G_nb,
@@ -262,13 +256,29 @@ summary(modelo_sarar)
 
 Interpretacion:
 
-El coeficiente del IPC es positivo pero no significativo.
+El coeficiente del IPC es positivo pero muy cercano a 0 y además no es significativo. En cambio el de agno si es significativo y negativo: la tasa disminuye con el tiempo
 
 Rho: mide autocorrelación espacial en la variable dependiente (Y) a través de la matriz W. El valor es pequeño, pero positivo y significativo lo que indica dependencia espacial leve: la tasa de nacimiento en una provincia depende un poco de las provincias vecinas en el mismo año.
 
-Lambda: mide la autocorrelación en el error entre periodos, a través de la matriz G (el tiempo). Nos ha dado exactamente 1 con error muy bajo lo indica que hay una altísima dependencia temporal.
+Lambda: mide la autocorrelación en el error entre periodos, a través de la matriz G (el tiempo). Nos ha negativa y significativa lo que implica que los errores en un año tienden a ser opuestos a los del año anterior (si un año el modelo sobreestima la tasa, al siguiente tiende a subestimarla, y viceversa).
 
 Parece que el modelo espaciotemporal mejora mucho respecto a uno lineal sin estos factores (el AIC reduce muchisimo)
+
+
+
+
+Calcula los residuales A*Y-X\beta (tienen componente espacial)
+Hay que calcular residuales: B*residuales de arriba.
+```{r}
+library(nortest)
+lillie.test(residuals(modelo_sarar))
+```
+```{r}
+#library(car)
+
+plot(density(residuals(modelo_sarar)))
+curve(dnorm(x,mean=0,sd=sd(residuals(modelo_sarar))), add=TRUE)
+```
 
 ```{r}
 res_sarar<-residuals(modelo_sarar)
@@ -276,7 +286,7 @@ moran.plot(res_sarar,listw = W_nb,zero.policy = TRUE)
 moran.test(res_sarar,listw = W_nb,zero.policy = TRUE)
 ```
 
-Indice de moran positivo alto y sifnidicativo... Todavia hay autocorrelacion espacial significativa en los residuos.
+El indice de moran es muy cercano a 0 (casi sin autocorrelacion espacial residual). PEro como el p-valor es elevado, no es significativo, con lo que podemos concluir que el modelo SARAR ha capturado adecuadamente la dependencia espacial
 
 ### SAR
 

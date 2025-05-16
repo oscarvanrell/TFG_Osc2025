@@ -1,0 +1,421 @@
+---
+title: "testraining"
+format: html
+editor: visual
+---
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(spdep)
+library(spatialreg)
+library(gamlss)
+library(sphet)
+library(xtable)
+library(ggspatial)
+library(ggplot2)
+library(plotly)
+
+library(readxl)
+library(readr)
+library(dplyr)
+library(spdep)
+library(Matrix)
+```
+
+```{r}
+load("DatosIniciales.RData")
+```
+
+
+```{r}
+#cargamos los datos del mapa
+pov<-read_sf("shapefiles_provincias_espana/shapefiles_provincias_espana.shp", , options = "ENCODING=UTF8")
+
+nacimientos_filtrado <- Nacimientos %>%
+  filter(Periodo >= "2002M01") %>%
+  filter(Provincias != "Total") 
+
+poblacion_filtrado <- Poblacion %>%
+  filter(Provincias != "Total") %>%
+  filter(Provincias != "residente") %>%
+  filter(Sexo == "Total") %>%
+  filter(Periodo >= "2002")
+
+IPC_filtrado <- IPC_Grupos %>%
+  filter(`Grupos ECOICOP` == "Índice general") %>%
+  filter(Provincias != "Nacional") %>%
+  filter(`Tipo de dato` == "Índice") %>%
+  filter(Periodo >= "2002M01")
+
+
+datos <- merge(x=nacimientos_filtrado, y=IPC_filtrado, 
+                    by.x=c("Provincias","Periodo"), by.y=c("Provincias","Periodo"),  all.x=TRUE) %>%
+  separate(Periodo, into = c("Año", "Mes"), sep = "M", extra = "merge")
+
+datos2 <- merge(x=datos, y=poblacion_filtrado, 
+                    by.x=c("Provincias", "Año"), by.y=c("Provincias","Periodo"),   all.x=TRUE) %>%
+  select(Provincias, Año, Mes, Total.x, Total.y, Total) %>%
+  rename(Total.Nacimientos = Total.x, Total.IPC = Total.y,  Total.Poblacion=Total) %>%
+  # Separar la columna Provincias en codigo_provincia y nombre_provincia
+  separate(Provincias, into = c("codigo_provincia", "nombre_provincia"), sep = " ", extra = "merge") %>%
+  mutate(tasaNaci = 1E5*Total.Nacimientos/Total.Poblacion)
+
+
+# De momento consideraremos la media anual 
+df <- datos2 %>%
+  filter(nombre_provincia != "residente") %>%
+  group_by(codigo_provincia, nombre_provincia, Año) %>%
+  summarise(tasa_nacim_media_año = mean(tasaNaci, na.rm = TRUE),
+            nacimientosaño = sum(Total.Nacimientos, na.rm = TRUE),
+            ipc_media_año = mean(Total.IPC, na.rm = TRUE),.groups = "drop") %>% 
+  dplyr::arrange(codigo_provincia,,nombre_provincia, Año) %>% 
+  dplyr::group_by(codigo_provincia) %>%
+  dplyr::mutate(Cambios =(nacimientosaño-lag(nacimientosaño))/lag(nacimientosaño)) %>% 
+  ungroup()
+
+pov2 <- merge(x=pov, y=df, 
+                    by.x="codigo", by.y="codigo_provincia", all.x=TRUE)
+
+pov2$Año <- as.numeric(as.character(pov2$Año))
+pov2$Año_norm <- (pov2$Año - min(pov2$Año)) / (max(pov2$Año) - min(pov2$Año))
+pov2$ipc_norm <- (pov2$ipc_media_año - min(pov2$ipc_media_año, na.rm = TRUE)) / 
+               (max(pov2$ipc_media_año, na.rm = TRUE) - min(pov2$ipc_media_año, na.rm = TRUE))
+```
+
+
+```{r}
+# División temporal
+pov2_train <- pov2 %>% filter(Año >= 2002 & Año <= 2018)
+pov2_test  <- pov2 %>% filter(Año >= 2019 & Año <= 2023)
+```
+
+
+# TRAINING
+
+
+```{r}
+library(splm)
+
+pov2_train_ord <- pov2_train %>%
+  filter(!is.na(Cambios)) %>%
+  arrange(Año, nombre_provincia) # MUY IMPORTANTE: primero por año, luego provincia
+
+sf_use_s2(FALSE)
+cont.nb3 <- poly2nb(pov2_train_ord %>% filter(Año == 2003)) # cualquier año sirve pk es fija
+W_base <- nb2mat(cont.nb3, style = "W", zero.policy = TRUE)  # matriz normal
+W_sparse <- Matrix(W_base, sparse = TRUE)  # matriz dispersa: solo guarda los elementos diferentes de 0 y sus posiciones
+
+# Crear matriz identidad de orden 20 (años)
+n_train  <- nrow(pov2_train_ord[pov2_train_ord$codigo == "01", ])
+I_train <- Diagonal(n_train)
+# Kronecker: W final para el modelo
+W_big_train <- kronecker(I_train, W_sparse)
+
+dataTest = plm::pdata.frame(pov2_train_ord, index=c("codigo", "Año"))
+splm::slmtest(Cambios~1, data=dataTest, listw=W_base)
+```
+
+
+```{r}
+W_base <- mat2listw(W_big_train, style = "W", zero.policy = TRUE)
+moran.test(pov2_train_ord$Cambios,listw = W_base,zero.policy = T)
+```
+
+
+## ANALISIS ESTADÍSTICO
+
+Construimos las matrices para el modelo:
+
+```{r}
+
+# Crear matriz temporal g_{20x20}
+g_base <- matrix(0, nrow = n_train, ncol = n_train)
+for (i in 2:n_train) {
+  g_base[i, i - 1] <- 1
+}
+G_time <- Matrix(g_base, sparse = TRUE)
+
+# Identidad de provincias
+I52 <- Diagonal(52)
+# Kronecker: G final para el modelo
+G_big_train <- kronecker(G_time, I52)
+
+# Crear vectores Y e X
+Y <- pov2_train_ord$Cambios
+X <- cbind(pov2_train_ord$ipc_norm, as.numeric(pov2_train_ord$Año_norm))
+```
+
+
+```{r}
+# Crear listas de vecinos
+W_nb <- mat2listw(W_big_train, style = "W", zero.policy = TRUE)
+G_nb <- mat2listw(G_big_train, style = "W", zero.policy = TRUE)
+
+# Creamos el data frame final con las variables necesarias
+modelo_df <- data.frame(
+  tasa = Y,
+  ipc = X[,1],
+  agno = X[,2])
+
+moran.plot(Y,listw = W_nb,zero.policy = TRUE)
+moran.test(Y,listw = W_nb,zero.policy = TRUE)
+```
+
+
+### SARAR
+
+```{r}
+# Ejecutar modelo SARAR espaciotemporal
+modelo_sarar <- sacsarlm(
+  formula = tasa ~ ipc+agno,
+  data = modelo_df,
+  listw = W_nb,
+  listw2 = G_nb,
+  zero.policy = TRUE)
+
+summary(modelo_sarar)
+```
+
+```{r}
+res_sarar<-residuals(modelo_sarar)
+moran.plot(res_sarar,listw = W_nb,zero.policy = TRUE)
+moran.test(res_sarar,listw = W_nb,zero.policy = TRUE)
+```
+
+### Normalidad y homocedasticidad de los errores (Comprobación):
+
+El modelo SARAR calcula los residuales A*Y-X\beta (tienen componente espacial)
+Hay que calcular residuales: B*residuales de arriba.
+```{r}
+library(nortest)
+
+hh<-as.numeric(A_lambda_train%*%residuals(modelo_sarar))
+lillie.test(hh)
+```
+
+
+```{r}
+#library(car)
+
+plot(density(residuals(modelo_sarar)))
+curve(dnorm(x,mean=0,sd=sd(residuals(modelo_sarar))), add=TRUE)
+```
+
+test de white:
+```{r}
+
+```
+
+
+
+
+
+# TESTING
+
+Recordemos que el modelo SARAR sigue:
+ $$\begin{cases}
+ Y= \rho Wy + x^T\beta + u\\
+ U = \lambda Gu+\epsilon 
+ \end{cases}$$
+
+
+
+y consideraremos $\epsilon\sim N(0,\sigma^2I)$. Para resolverlo necesitamos las variables $\lambda$, $\rho$ y $\beta$, de las cuales las dos primeras las hemos conseguido con el modelo SARAR de R y la $\beta$ la vamos a obtener mediante:
+
+Para calcular beta
+$$\beta = ((A_{\lambda}X)^{T}\Sigma^{-1}A_{\lambda}X)^{-1}(A_{\lambda}X)^{T}\Sigma^{-1}A_{\lambda}A_{\rho}y$$
+Al ser $\Sigma = \sigma^2 I$ tendremos que en la expresion de la beta se nos va a simplificar obteniendo
+$$\beta = ((A_{\lambda}X)^{T}A_{\lambda}X)^{-1}(A_{\lambda}X)^{T}A_{\lambda}A_{\rho}y$$
+```{r}
+#obtencion de variables
+library(Matrix)
+
+rho <- modelo_sarar$rho
+lambda <- modelo_sarar$lambda
+sigma2 <- modelo_sarar$s2
+sigma <- sqrt(sigma2)
+#beta_hat <- coef(modelo_sarar)[c("(Intercept)", "ipc", "agno")]
+
+A_rho_train <- Diagonal(nrow(W_big_train)) - rho * W_big_train
+A_lambda_train <- Diagonal(nrow(G_big_train)) - lambda * G_big_train
+
+X_train <- as.matrix(cbind(1, pov2_train_ord$ipc_norm, as.numeric(pov2_train_ord$Año_norm)))
+Y_train <- as.matrix(pov2_train_ord$Cambios)
+
+X_star <- A_lambda_train %*% X_train
+Y_star <- A_lambda_train %*% (A_rho_train %*% Y_train)
+
+#I_sigma <- Diagonal(n_train)  # 52 provincias
+#Sigma <- kronecker(sigma2, I_sigma)
+#Sigma_inv <- solve(Sigma)
+#print(Sigma_inv)
+
+#Xt_Sinv <- t(X_star) %*% Sigma_inv  
+#Xt_Sinv_X <- Xt_Sinv %*% X_star     
+#Xt_Sinv_y <- Xt_Sinv %*% y_star     
+
+# Calcular beta
+#beta_hat <- solve(Xt_Sinv_X) %*% Xt_Sinv_y
+beta_hat <- solve(t(X_star) %*% X_star) %*% t(X_star) %*% Y_star
+```
+
+
+Una vez obtenidas todas las variables, el modelo se resuelve como:
+$$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon =\\
+A_{\rho}X\beta + A_{\rho}^{-1}A_{\lambda}^{-1}\epsilon$$ 
+
+```{r}
+pov2_test_ord <- pov2_test %>%
+  filter(!is.na(Cambios)) %>%
+  arrange(Año, nombre_provincia)
+
+#W_sparse <- Matrix(W_base, sparse = TRUE)  # ya creada antes
+n_test  <- nrow(pov2_test_ord[pov2_test_ord$codigo == "01", ])
+I_test <- Diagonal(n_test)  # 10 años para el test (2014–2023)
+W_big_test <- kronecker(I_test, W_sparse)
+
+g_base_test <- matrix(0, nrow = n_test, ncol = n_test)
+for (i in 2:n_test) {
+  g_base_test[i, i - 1] <- 1
+}
+G_time_test <- Matrix(g_base_test, sparse = TRUE)
+
+I52 <- Diagonal(52)  # 52 provincias
+
+G_big_test <- kronecker(G_time_test, I52)
+```
+
+
+
+
+
+
+
+
+```{r}
+X_test <- cbind(1, pov2_test$ipc_norm, as.numeric(pov2_test$Año_norm))  # 1 es para el intercept
+n_test <- nrow(X_test) # n = 520 (52 provincias × 10 años)
+
+
+A_rho_test <- Diagonal(nrow(W_big_test)) - rho * W_big_test  #(I - rho * W)
+A_lambda_test <- Diagonal(nrow(G_big_test))-lambda * G_big_test #(I - lambda * G)
+
+# Simulacion del error
+set.seed(123)
+epsilon_sim <- rnorm(n_test, mean = 0, sd = sigma)
+```
+
+
+
+
+```{r}
+# 5. Resolver la ecuación completa para Y
+# ----------------------------
+# Componente estructural (sin error)
+Ey_hat <- solve(A_rho_test, X_test %*% beta_hat)
+
+# Componente de error transformado
+E_component <- solve(A_rho_test, solve(A_lambda_test, epsilon_sim))
+
+# Y simulado final
+Y_simulado <- as.numeric(Ey_hat + E_component)
+```
+
+
+
+### Comparacion y visualizacion
+
+
+
+
+
+
+
+
+```{r}
+real <- pov2_test$Cambios
+y_pred_vec <- as.numeric(Y_simulado)
+
+mae <- mean(abs(y_pred_vec - real), na.rm = TRUE)
+rmse <- sqrt(mean((y_pred_vec - real)^2, na.rm = TRUE))
+r2 <- cor(y_pred_vec, real, use = "complete.obs")^2
+
+cat("MAE:", mae, "\nRMSE:", rmse, "\nR²:", r2, "\n")
+```
+MAE error absoluto medio: promedio de las diferencias absolutas entre valor real y predicho. Cuanto más bajo mejor
+RMSE Raíz del error cuadrático medio: error promedio de los errores mas grandes.
+R^2: La proporcion de variación de los datos reales que es explicada por el modelo (de -inf a 1, siendo 1 prediccion excelente, 0 que el modelo no mejora con respecto a predecir la media, y <0 que es peor a predecir la media constate).
+
+
+```{r}
+plot(real, y_pred_vec,
+     xlab = "Valor real (test)",
+     ylab = "Predicción SARAR",
+     pch = 16, col = "blue",
+     main = "Predicción SARAR vs Real (Test)")
+abline(0, 1, col = "red", lwd = 2)
+```
+Cada punto representa una observacion (provincia en 1 año). El eje x es el valor real y el y la predicción del SARAR. Cuanto más cerca esten los puntos de la linea, mejor predice el modelo.
+
+Al estar todos por debajo de la linea parece haber un sesgo (el modelo parece sobreestimar)
+
+
+## Tests para solo 1 año
+```{r}
+pov3_test  <- pov2 %>% filter(Año == 2019)
+pov3_test_ord <- pov3_test %>%
+  filter(!is.na(Cambios)) %>%
+  arrange(Año, nombre_provincia)
+
+#W_sparse <- Matrix(W_base, sparse = TRUE)  # ya creada antes
+n_test3  <- nrow(pov3_test_ord[pov3_test_ord$codigo == "01", ])
+I_test3 <- Diagonal(n_test3)  # 10 años para el test (2014–2023)
+W_big_test3 <- kronecker(I_test3, W_sparse)
+
+g_base_test3 <- matrix(0, nrow = n_test3, ncol = n_test3)
+for (i in 2:n_test3) {
+  g_base_test[i, i - 1] <- 1
+}
+G_time_test3 <- Matrix(g_base_test3, sparse = TRUE)
+
+I52 <- Diagonal(52)  # 52 provincias
+
+G_big_test3 <- kronecker(G_time_test3, I52)
+
+X_test3 <- cbind(1, pov3_test$ipc_norm, as.numeric(pov3_test$Año_norm))  # 1 es para el intercept
+n_test3 <- nrow(X_test3) # n = 520 (52 provincias × 10 años)
+
+
+A_rho_test3 <- Diagonal(nrow(W_big_test3)) - rho * W_big_test3  #(I - rho * W)
+A_lambda_test3 <- Diagonal(nrow(G_big_test3))-lambda * G_big_test3 #(I - lambda * G)
+
+set.seed(123)
+epsilon_sim3 <- rnorm(n_test3, mean = 0, sd = sigma)
+Ey_hat3 <- solve(A_rho_test3, X_test3 %*% beta_hat)
+
+E_component3 <- solve(A_rho_test3, solve(A_lambda_test3, epsilon_sim3))
+
+Y_simulado3 <- as.numeric(Ey_hat3 + E_component3)
+
+real3 <- pov3_test$Cambios
+
+
+y_pred_vec3 <- as.numeric(Y_simulado3)
+
+mae3 <- mean(abs(y_pred_vec3 - real3), na.rm = TRUE)
+rmse3 <- sqrt(mean((y_pred_vec3 - real3)^2, na.rm = TRUE))
+r23 <- cor(y_pred_vec3, real3, use = "complete.obs")^2
+
+cat("MAE:", mae3, "\nRMSE:", rmse3, "\nR²:", r23, "\n")
+```
+```{r}
+plot(real3, y_pred_vec3,
+     xlab = "Valor real (test)",
+     ylab = "Predicción SARAR",
+     pch = 16, col = "blue",
+     main = "Predicción SARAR vs Real (Test)")
+abline(0, 1, col = "red", lwd = 2)
+```
+
+
