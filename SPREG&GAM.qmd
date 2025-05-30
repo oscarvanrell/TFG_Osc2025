@@ -87,7 +87,150 @@ pov2_test  <- pov2 %>% filter(Año >= 2019 & Año <= 2023)
 ```
 
 
+# Descripcion 
 
+Grafico de líneas de los cambios por provincia
+
+```{r}
+
+p <- ggplot(pov2, aes(x = Año, y = Cambios, 
+                               group = nombre_provincia, color = nombre_provincia,
+                               text = paste("Provincia:", nombre_provincia,
+                                            "<br>Año:", Año,
+                                            "<br>Tasa:", round(Cambios, 1)))) +
+  geom_line() +
+  labs(title = "Serie temporal de los cambios de Natalidad por provincia",
+       x = "Año", y = "Cambios") +
+  theme_minimal()
+
+ggplotly(p, tooltip = "text")
+```
+
+
+
+Gráfico de lineas de la tasa por provincia (sin hacer cambios)
+
+```{r}
+p1 <- ggplot(pov2, aes(x = Año, y = nacimientosaño, 
+                               group = nombre_provincia, color = nombre_provincia,
+                               text = paste("Provincia:", nombre_provincia,
+                                            "<br>Año:", Año,
+                                            "<br>Tasa:", round(nacimientosaño, 1)))) +
+  geom_line() +
+  labs(title = "Serie temporal de la Natalidad anual por provincia",
+       x = "Año", y = "Cambios") +
+  theme_minimal()
+
+ggplotly(p1, tooltip = "text")
+```
+
+```{r}
+p2 <- ggplot(pov2, aes(x = Año, y = ipc_media_año, 
+                               group = nombre_provincia, color = nombre_provincia,
+                               text = paste("Provincia:", nombre_provincia,
+                                            "<br>Año:", Año,
+                                            "<br>Tasa:", round(ipc_media_año, 1)))) +
+  geom_line() +
+  labs(title = "Serie temporal del IPC anual por provincia",
+       x = "Año", y = "Cambios") +
+  theme_minimal()
+
+ggplotly(p2, tooltip = "text")
+```
+
+
+
+Correlación entre IPC, cambios y tasa (sin hacer los cambios)
+
+```{r}
+library(ggcorrplot)
+
+variables_cor <- pov2 %>%
+  as.data.frame() %>%
+  select(ipc_media_año, Cambios, nacimientosaño) %>%
+  na.omit()
+cor_matrix <- cor(variables_cor)
+
+ggcorrplot(cor_matrix,
+           hc.order = TRUE,
+           type = "lower",
+           colors = c("blue", "white", "red"),
+           lab = TRUE) +
+  labs(title = "Correlación entre IPC, Cambios y Nacimientos") +
+  theme(plot.title = element_text(size = 15, face = 'bold'))
+```
+
+X e Y son `Cambios` y `ipc_media_año` respectivamente: $$\begin{cases}
+H_{0}: &  \rho_{X,Y}=0\\
+H_{1}: & \rho_{X,Y}<0
+\end{cases}$$
+
+```{r}
+cor.test(pov2$Cambios, pov2$ipc_media_año , alternative="less")
+```
+
+Lo repito tambien con ipc_norm y año_norm ya que son las que usamos en el spreg
+```{r}
+library(ggcorrplot)
+
+variables_cor <- pov2 %>%
+  as.data.frame() %>%
+  select(ipc_norm,Año_norm, Cambios, nacimientosaño) %>%
+  na.omit()
+cor_matrix <- cor(variables_cor)
+
+ggcorrplot(cor_matrix,
+           hc.order = TRUE,
+           type = "lower",
+           colors = c("blue", "white", "red"),
+           lab = TRUE) +
+  labs(title = "Correlación entre IPC, Cambios y Nacimientos") +
+  theme(plot.title = element_text(size = 15, face = 'bold'))
+```
+lo interesante es cambios con año_norm y ipc_norm. No hay correlacion entre el numero de nacimientos y cambios.
+
+
+Un modelo lineal entre el cambio y el IPC.
+
+```{r}
+modelo_lin <- lm(Cambios ~ ipc_media_año, data = pov2)
+summary(modelo_lin)
+```
+```{r}
+ggplot(pov2, aes(x = ipc_media_año, y = Cambios)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", col = "blue", se = TRUE) +
+  labs(title = "Modelo lineal: Cambios ~ IPC",
+       x = "IPC medio anual",
+       y = "Cambio en nacimientos") +
+  theme_minimal()
+```
+
+Gráfico de ACF de la variable cambio por cada provincia
+
+```{r}
+provincias <- unique(pov2$nombre_provincia)
+
+# Crear gráfico ACF por provincia
+for (prov in provincias) {
+  datos_prov <- pov2 %>%
+    filter(nombre_provincia == prov) %>%
+    arrange(Año)  # Importante para mantener orden temporal
+  
+  cambios_ts <- na.omit(datos_prov$Cambios)
+  
+  if (length(cambios_ts) > 1) {  # Evitar error si hay pocos datos
+    acf(cambios_ts, main = paste("ACF de Cambios -", prov))
+  }
+}
+```
+ 
+Menos dependencia temporal de la que me esperaba... casos que si seria tarragona o LAs palmas y algunas otras
+
+
+
+
+# Analisis estadístico
 
 
 ```{r}
