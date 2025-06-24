@@ -4,7 +4,6 @@ format: html
 editor: visual
 ---
 
-
 ```{r}
 rm(list=ls())
 library(tidyverse)
@@ -114,12 +113,9 @@ pov2<- pov22 %>%
 
 El dataset final es pov2
 
-En un principio la variable de interés en la que se iban a basar el estudio de los modelos era nacimientosaño, que es la suma de los nacimientos que hubo por provincias en todo el año.
-Finalmente, por la poca variabilidad que peresenta esta variable que dificulataba modelar la correlacion espacial, decidimos estudiar esto desde otro enfoque y crear la variable Cambios, que da el cambio porcentual entre el numero de nacimientos de un año a otro por provincia calculado de la siguiente manera: 
-$Cambios =(nacimientosaño-lag(nacimientosaño))/lag(nacimientosaño)$
+En un principio la variable de interés en la que se iban a basar el estudio de los modelos era nacimientosaño, que es la suma de los nacimientos que hubo por provincias en todo el año. Finalmente, por la poca variabilidad que peresenta esta variable que dificulataba modelar la correlacion espacial, decidimos estudiar esto desde otro enfoque y crear la variable Cambios, que da el cambio porcentual entre el numero de nacimientos de un año a otro por provincia calculado de la siguiente manera: $Cambios =(nacimientosaño-lag(nacimientosaño))/lag(nacimientosaño)$
 
-Como variable explicativa vamos a tomar el producto de ipc_norm * Año_norm, estas variables son el resultado de normalizar los datos del ipc y año para tener la misma escala y tansformar sus valores dentro del rango [0,1], consiguiendo que el valor mínimo se convierta en 0, el máximo en 1, y los demñas se ajusten proporcionalmente a esos valores. Esto se consiguie mediante la siguiente formula 
-$$Año\_norm =\frac{Año - min(Año)}{max(Año) - min(Año)}$$
+Como variable explicativa vamos a tomar el producto de ipc_norm \* Año_norm, estas variables son el resultado de normalizar los datos del ipc y año para tener la misma escala y tansformar sus valores dentro del rango \[0,1\], consiguiendo que el valor mínimo se convierta en 0, el máximo en 1, y los demñas se ajusten proporcionalmente a esos valores. Esto se consiguie mediante la siguiente formula $$Año\_norm =\frac{Año - min(Año)}{max(Año) - min(Año)}$$
 
 # Analisis exploratirio
 
@@ -166,6 +162,7 @@ p4 <- crear_mapa(pov2020, 2020)
 (p1 | p2) /
 (p3 | p4)
 ```
+
 ```{r}
 
 p <- ggplot(pov2, aes(x = Año, y = Cambios, 
@@ -180,6 +177,7 @@ p <- ggplot(pov2, aes(x = Año, y = Cambios,
 
 ggplotly(p, tooltip = "text")
 ```
+
 ```{r}
 p1 <- ggplot(pov2, aes(x = Año, y = nacimientosaño, 
                                group = nombre_provincia, color = nombre_provincia,
@@ -207,6 +205,7 @@ p2 <- ggplot(pov2, aes(x = Año, y = ipc_media_año,
 
 ggplotly(p2, tooltip = "text")
 ```
+
 Correlación entre IPC, cambios y tasa (sin hacer los cambios)
 
 ```{r}
@@ -255,6 +254,7 @@ ggcorrplot(cor_matrix,
   labs(title = "Correlación entre IPC, Cambios y Nacimientos") +
   theme(plot.title = element_text(size = 15, face = 'bold'))
 ```
+
 Un modelo lineal entre el cambio y el IPC.
 
 ```{r}
@@ -271,7 +271,6 @@ ggplot(pov2, aes(x = ipc_norm, y = Cambios)) +
        y = "Cambio en nacimientos") +
   theme_minimal()
 ```
-
 
 Gráfico de ACF de la variable cambio por cada provincia
 
@@ -292,13 +291,9 @@ for (prov in provincias) {
 }
 ```
 
-
-
-
 # Analisis estadístico
 
 ## Obtencion matrices W y G del train y test
-
 
 ```{r}
 # División temporal
@@ -347,6 +342,7 @@ modelo_df <- data.frame(
   agno = X[,2],
   ipcagno=X[,1]*X[,2])
 ```
+
 ```{r}
 pov2_test_ord <- pov2_test %>%
   filter(!is.na(Cambios)) %>%
@@ -373,19 +369,20 @@ X_test_mat <- cbind(
 )
 X_test <- Matrix(X_test_mat, sparse = TRUE)
 ```
+
 Ahora vamos a aplicar los modelos de R para obtener las variables y con ellas obtener las predicciones de los años del test para poder compararlas con los valores reales y ver cual se ajusta mejor. De hecho, vamos a guardar ya esos valores reales de los años test como:
+
 ```{r}
 real <- pov2_test_ord$Cambios
 ```
-
 
 ## SARAR
 
 Recordemos que el modelo SARAR sigue: $$\begin{cases}
  Y= \rho Wy + x^T\beta + u\\
  U = \lambda Gu+\epsilon 
- \end{cases}$$
-y consideraremos $\epsilon\sim N(0,\sigma^2I)$. Para resolverlo necesitamos las variables $\lambda$, $\rho$ y $\beta$, de las cuales vamos a obtener mediante:
+ \end{cases}$$ y consideraremos $\epsilon\sim N(0,\sigma^2I)$. Para resolverlo necesitamos las variables $\lambda$, $\rho$ y $\beta$, de las cuales vamos a obtener mediante:
+
 ```{r}
 # Ejecutar modelo SARAR espaciotemporal
 modelo_sarar <- sacsarlm(
@@ -397,6 +394,7 @@ modelo_sarar <- sacsarlm(
 
 summary(modelo_sarar)
 ```
+
 ```{r}
 rho_sarar <- modelo_sarar$rho
 lambda_sarar <-modelo_sarar$lambda
@@ -404,8 +402,8 @@ sigma2_sarar <- modelo_sarar$s2
 sigma_sarar <- sqrt(sigma2_sarar)
 beta_sarar <-  modelo_sarar$coefficients[c("(Intercept)", "ipcagno")]
 ```
-Una vez obtenidos los coeficientes, vamos a obtener los valores para los años del test resolviendo:
-$$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon =\\
+
+Una vez obtenidos los coeficientes, vamos a obtener los valores para los años del test resolviendo: $$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon =\\
 A_{\rho}X\beta + A_{\rho}^{-1}A_{\lambda}^{-1}\epsilon$$
 
 ```{r}
@@ -444,6 +442,7 @@ mape_sarar <- mean(abs((real - y_pred_vec_sarar) / real)) * 100
 
 cat("MAE:", mae_sarar, "\nRMSE:", rmse_sarar, "\nR²:", r2_sarar, "\nMAPE:", round(mape_sarar, 4), "%\n")
 ```
+
 ```{r}
 plot(real, y_pred_vec_sarar,
      xlab = "Valor real (test)",
@@ -452,10 +451,10 @@ plot(real, y_pred_vec_sarar,
      main = "Predicción SARAR vs Real")
 abline(0, 1, col = "red", lwd = 2)
 ```
-ver la no normalidad del modelo
-### duda
 
-¿El modelo SARAR calcula los residuales A*Y-X*\beta (tienen componente espacial) Hay que calcular residuales: B*residuales de arriba.? Esto es un apunte que tenia en mis notas pero no me queda claro de si me lo he inventado o como es
+ver la no normalidad del modelo \### duda
+
+¿El modelo SARAR calcula los residuales A*Y-X*\beta (tienen componente espacial) Hay que calcular residuales: B\*residuales de arriba.? Esto es un apunte que tenia en mis notas pero no me queda claro de si me lo he inventado o como es
 
 ```{r}
 library(nortest)
@@ -475,8 +474,7 @@ plot(density(residuals(modelo_sarar)))
 curve(dnorm(x,mean=0,sd=sd(residuals(modelo_sarar))), add=TRUE)
 ```
 
-Como nuestros datos no cumplen con la hipotesis de normalidad, realizamos el modelo sarar bajo la funcion de R SPREG, ya que es mas flexible y permite la no normalidad de los errores.
-## SPREG
+Como nuestros datos no cumplen con la hipotesis de normalidad, realizamos el modelo sarar bajo la funcion de R SPREG, ya que es mas flexible y permite la no normalidad de los errores. \## SPREG
 
 ```{r}
 ##Modelo 1
@@ -493,6 +491,7 @@ summary(modelo_spreg)
 #modelo_sarar2[]
 
 ```
+
 ```{r}
 coefs_spreg <- modelo_spreg$coefficients[, 1]
 rho_spreg <- coefs_spreg['rho']
@@ -501,8 +500,8 @@ sigma2_spreg <- modelo_spreg$s2
 sigma_spreg <- sqrt(sigma2_spreg)
 beta_spreg <- coefs_spreg[c("(Intercept)", "ipcagno")]
 ```
-Una vez obtenidos los coeficientes, vamos a obtener los valores para los años del test resolviendo, como en el SARAR anterior:
-$$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon =\\
+
+Una vez obtenidos los coeficientes, vamos a obtener los valores para los años del test resolviendo, como en el SARAR anterior: $$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon =\\
 A_{\rho}X\beta + A_{\rho}^{-1}A_{\lambda}^{-1}\epsilon$$
 
 ```{r}
@@ -541,6 +540,7 @@ mape_spreg <- mean(abs((real - y_pred_vec_spreg) / real)) * 100
 
 cat("MAE:", mae_spreg, "\nRMSE:", rmse_spreg, "\nR²:", r2_spreg, "\nMAPE:", round(mape_spreg, 4), "%\n")
 ```
+
 ```{r}
 plot(real, y_pred_vec_spreg,
      xlab = "Valor real (test)",
@@ -549,12 +549,10 @@ plot(real, y_pred_vec_spreg,
      main = "Predicción SARAR SPREG vs Real")
 abline(0, 1, col = "red", lwd = 2)
 ```
+
 ## DURBIN
 
-Extensión del modelo SAR que además del termino autorregresivo espacial en la variable dependiente y, añade efectos espcaciales en las variables explicativas x, lo que permite que los valores de las variables explicativas en regiones vecinas afecten a la región actual.
-Formula:
-$$Y=\rho Wy + x\beta + Wx\theta+\epsilon$$
-donde $\theta$ son los efectos espaciales indirectos de las covariables y $\epsilon\sim N(0,\sigma^2I)$
+Extensión del modelo SAR que además del termino autorregresivo espacial en la variable dependiente y, añade efectos espcaciales en las variables explicativas x, lo que permite que los valores de las variables explicativas en regiones vecinas afecten a la región actual. Formula: $$Y=\rho Wy + x\beta + Wx\theta+\epsilon$$ donde $\theta$ son los efectos espaciales indirectos de las covariables y $\epsilon\sim N(0,\sigma^2I)$
 
 ```{r}
 modelo_durbin <- lagsarlm(
@@ -568,6 +566,7 @@ modelo_durbin <- lagsarlm(
 summary(modelo_durbin)
 
 ```
+
 ```{r}
 coefs_durbin <- coef(modelo_durbin)
 rho_durbin <- modelo_durbin$rho
@@ -576,8 +575,8 @@ sigma2_durbin <- modelo_durbin$s2
 sigma_durbin <- sqrt(sigma2_durbin)
 beta_durbin <- coefs_durbin[c("(Intercept)", "ipcagno")]
 ```
-Una vez obtenidos los coeficientes, vamos a obtener los valores para los años del test resolviendo, como en el SARAR anterior:
-$$Y=(Id-\rho W)^{-1}X\beta +  (Id-\rho W)^{-1}WX\theta + (Id-\rho W)^{-1}\epsilon =\\
+
+Una vez obtenidos los coeficientes, vamos a obtener los valores para los años del test resolviendo, como en el SARAR anterior: $$Y=(Id-\rho W)^{-1}X\beta +  (Id-\rho W)^{-1}WX\theta + (Id-\rho W)^{-1}\epsilon =\\
 A_{\rho}^{-1}(X\beta + WX\theta+\epsilon)$$
 
 ```{r}
@@ -587,8 +586,9 @@ epsilon_durbin <- rnorm(n_test_obs_durbin, mean = 0, sd = sigma_durbin)
 epsilon_durbin <- Matrix(epsilon_durbin, sparse = TRUE)  # para multiplicaciones
 
 # Asegurarse que todo es vector numérico
-X_beta <- X_test * beta_durbin
-WX_theta <- W_big_test %*% X_test * theta_durbin
+X_beta <- X_test %*% beta_durbin
+WX_theta <- W_big_test %*% X_test
+WX_theta <- WX_theta[,-1,drop=FALSE] * theta_durbin
 A_rho_test_durbin <- Diagonal(n_test_obs_durbin) - rho_durbin * W_big_test
 rhs <-  A_rho_test_durbin %*% (X_beta + WX_theta) 
 
@@ -596,7 +596,9 @@ rhs <-  A_rho_test_durbin %*% (X_beta + WX_theta)
 Y_simulado_durbin <- rhs + A_rho_test_durbin %*% epsilon_durbin
 
 ```
+
 ### duda
+
 No consigo la operación matricial compatible
 
 ```{r}
@@ -608,7 +610,6 @@ dim(rhs)
 dim( A_rho_test_durbin )
 
 ```
-
 
 ```{r}
 # 7. Convertimos a vector si lo necesitas
@@ -626,6 +627,7 @@ mape_durbin <- mean(abs((real - y_pred_vec_durbin) / real)) * 100
 
 cat("MAE:", mae_durbin, "\nRMSE:", rmse_durbin, "\nR²:", r2_durbin, "\nMAPE:", round(mape_durbin, 4), "%\n")
 ```
+
 ```{r}
 plot(real, y_pred_vec_durbin,
      xlab = "Valor real (test)",
@@ -634,7 +636,6 @@ plot(real, y_pred_vec_durbin,
      main = "Predicción durbin vs Real")
 abline(0, 1, col = "red", lwd = 2)
 ```
-
 
 ## GAM
 
@@ -687,8 +688,8 @@ plot(real, y_pred_vec_gam, main = "Predicción GAM vs Valores Reales",
 abline(0, 1, col = "red", lty = 2)
 ```
 
-
 ## Año tras año spreg
+
 ### 2021
 
 ```{r}
@@ -705,10 +706,8 @@ I_test_21 <- Diagonal(n_test_21)  # 10 años para el test (2014–2023)
 W_big_test_21 <- kronecker(I_test_21, W_base)
 W2_21 <- mat2listw(W_big_test_21, style="W", zero.policy = TRUE)
 ```
-###duda
-al hacer el test sobre solo un año, la matriz G de la formula
-$$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon$$
-la cual hace referencia al peso del pasado, sria una matriz nula no? esto implica que el modelo seria como un SAR? No se como tratarlo
+
+###duda al hacer el test sobre solo un año, la matriz G de la formula $$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon$$ la cual hace referencia al peso del pasado, sria una matriz nula no? esto implica que el modelo seria como un SAR? No se como tratarlo
 
 ```{r}
 g_base_test_21 <- matrix(0, nrow = n_test_21, ncol = n_test_21)
@@ -728,10 +727,10 @@ X_test_21 <- Matrix(X_test_mat_21, sparse = TRUE)
 real_21 <- pov2_test_ord_21$Cambios
 
 ```
+
 En este primer caso, como el train es el mismo que antes, obtenemos los mismos datos del modelo y las mismas variables, asi que podemos pasar directamente al calculo de las observaciones del 2021:
 
-Una vez obtenidos los coeficientes, vamos a obtener los valores para los años el test resolviendo, como en el SARAR anterior:
-$$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon =\\
+Una vez obtenidos los coeficientes, vamos a obtener los valores para los años el test resolviendo, como en el SARAR anterior: $$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon =\\
 A_{\rho}X\beta + A_{\rho}^{-1}A_{\lambda}^{-1}\epsilon$$
 
 ```{r}
@@ -770,6 +769,7 @@ mape_spreg_21 <- mean(abs((real_21 - y_pred_vec_spreg_21) / real_21)) * 100
 
 cat("MAE:", mae_spreg_21, "\nRMSE:", rmse_spreg_21, "\nR²:", r2_spreg_21, "\nMAPE:", round(mape_spreg_21, 4), "%\n")
 ```
+
 ```{r}
 plot(real_21, y_pred_vec_spreg_21,
      xlab = "Valor real (test)",
@@ -779,8 +779,8 @@ plot(real_21, y_pred_vec_spreg_21,
 abline(0, 1, col = "red", lwd = 2)
 ```
 
-
 ### 2022
+
 ```{r}
 # División temporal
 pov2_train_22 <- pov2 %>% filter(Año >= 2002 & Año <= 2021)
@@ -864,6 +864,7 @@ summary(modelo_spreg_22)
 #modelo_sarar2[]
 
 ```
+
 ```{r}
 coefs_spreg_22 <- modelo_spreg_22$coefficients[, 1]
 rho_spreg_22 <- coefs_spreg_22['rho']
@@ -873,9 +874,7 @@ sigma_spreg_22 <- sqrt(sigma2_spreg_22)
 beta_spreg_22 <- coefs_spreg_22[c("(Intercept)", "ipcagno")]
 ```
 
-
-Una vez obtenidos los coeficientes, vamos a obtener los valores para los años el test resolviendo, como en el SARAR anterior:
-$$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon =\\
+Una vez obtenidos los coeficientes, vamos a obtener los valores para los años el test resolviendo, como en el SARAR anterior: $$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon =\\
 A_{\rho}X\beta + A_{\rho}^{-1}A_{\lambda}^{-1}\epsilon$$
 
 ```{r}
@@ -914,6 +913,7 @@ mape_spreg_22 <- mean(abs((real_22 - y_pred_vec_spreg_22) / real_22)) * 100
 
 cat("MAE:", mae_spreg_22, "\nRMSE:", rmse_spreg_22, "\nR²:", r2_spreg_22, "\nMAPE:", round(mape_spreg_22, 4), "%\n")
 ```
+
 ```{r}
 plot(real_22, y_pred_vec_spreg_22,
      xlab = "Valor real (test)",
@@ -923,9 +923,8 @@ plot(real_22, y_pred_vec_spreg_22,
 abline(0, 1, col = "red", lwd = 2)
 ```
 
-
-
 ### 2023
+
 ```{r}
 # División temporal
 pov2_train_23 <- pov2 %>% filter(Año >= 2002 & Año <= 2022)
@@ -1009,6 +1008,7 @@ summary(modelo_spreg_23)
 #modelo_sarar2[]
 
 ```
+
 ```{r}
 coefs_spreg_23 <- modelo_spreg_23$coefficients[, 1]
 rho_spreg_23 <- coefs_spreg_23['rho']
@@ -1018,9 +1018,7 @@ sigma_spreg_23 <- sqrt(sigma2_spreg_23)
 beta_spreg_23 <- coefs_spreg_23[c("(Intercept)", "ipcagno")]
 ```
 
-
-Una vez obtenidos los coeficientes, vamos a obtener los valores para los años el test resolviendo, como en el SARAR anterior:
-$$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon =\\
+Una vez obtenidos los coeficientes, vamos a obtener los valores para los años el test resolviendo, como en el SARAR anterior: $$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon =\\
 A_{\rho}X\beta + A_{\rho}^{-1}A_{\lambda}^{-1}\epsilon$$
 
 ```{r}
@@ -1059,6 +1057,7 @@ mape_spreg_23 <- mean(abs((real_23 - y_pred_vec_spreg_23) / real_23)) * 100
 
 cat("MAE:", mae_spreg_23, "\nRMSE:", rmse_spreg_23, "\nR²:", r2_spreg_23, "\nMAPE:", round(mape_spreg_23, 4), "%\n")
 ```
+
 ```{r}
 plot(real_23, y_pred_vec_spreg_23,
      xlab = "Valor real (test)",
@@ -1067,47 +1066,3 @@ plot(real_23, y_pred_vec_spreg_23,
      main = "Predicción SARAR SPREG vs Real 2023")
 abline(0, 1, col = "red", lwd = 2)
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

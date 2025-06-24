@@ -86,8 +86,7 @@ pov2_train <- pov2 %>% filter(Año >= 2002 & Año <= 2018)
 pov2_test  <- pov2 %>% filter(Año >= 2019 & Año <= 2023)
 ```
 
-
-# Descripcion 
+# Descripcion
 
 Grafico de líneas de los cambios por provincia
 
@@ -105,8 +104,6 @@ p <- ggplot(pov2, aes(x = Año, y = Cambios,
 
 ggplotly(p, tooltip = "text")
 ```
-
-
 
 Gráfico de lineas de la tasa por provincia (sin hacer cambios)
 
@@ -138,8 +135,6 @@ p2 <- ggplot(pov2, aes(x = Año, y = ipc_media_año,
 ggplotly(p2, tooltip = "text")
 ```
 
-
-
 Correlación entre IPC, cambios y tasa (sin hacer los cambios)
 
 ```{r}
@@ -170,6 +165,7 @@ cor.test(pov2$Cambios, pov2$ipc_media_año , alternative="less")
 ```
 
 Lo repito tambien con ipc_norm y año_norm ya que son las que usamos en el spreg
+
 ```{r}
 library(ggcorrplot)
 
@@ -187,8 +183,8 @@ ggcorrplot(cor_matrix,
   labs(title = "Correlación entre IPC, Cambios y Nacimientos") +
   theme(plot.title = element_text(size = 15, face = 'bold'))
 ```
-lo interesante es cambios con año_norm y ipc_norm. No hay correlacion entre el numero de nacimientos y cambios.
 
+lo interesante es cambios con año_norm y ipc_norm. No hay correlacion entre el numero de nacimientos y cambios.
 
 Un modelo lineal entre el cambio y el IPC.
 
@@ -196,6 +192,7 @@ Un modelo lineal entre el cambio y el IPC.
 modelo_lin <- lm(Cambios ~ ipc_media_año, data = pov2)
 summary(modelo_lin)
 ```
+
 ```{r}
 ggplot(pov2, aes(x = ipc_media_año, y = Cambios)) +
   geom_point(alpha = 0.6) +
@@ -224,14 +221,10 @@ for (prov in provincias) {
   }
 }
 ```
- 
+
 Menos dependencia temporal de la que me esperaba... casos que si seria tarragona o LAs palmas y algunas otras
 
-
-
-
 # Analisis estadístico
-
 
 ```{r}
 pov2_train_ord <- pov2_train %>%
@@ -275,7 +268,6 @@ modelo_df <- data.frame(
   ipcagno=X[,1]*X[,2])
 ```
 
-
 ```{r}
 # Ejecutar modelo SARAR espaciotemporal
 modelo_sarar <- sacsarlm(
@@ -287,8 +279,6 @@ modelo_sarar <- sacsarlm(
 
 summary(modelo_sarar)
 ```
-
-
 
 ## SPREG
 
@@ -307,10 +297,6 @@ summary(modelo_sarar2)
 #modelo_sarar2[]
 
 ```
-
-
-
-
 
 Recordemos que el modelo SARAR sigue: $$\begin{cases}
  Y= \rho Wy + x^T\beta + u\\
@@ -355,8 +341,6 @@ XtY <- t(X_star) %*% Y_star
 beta_hat <- solve(XtX, XtY)
 ```
 
-
-
 Una vez obtenidas todas las variables, el modelo se resuelve como: $$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon =\\
 A_{\rho}X\beta + A_{\rho}^{-1}A_{\lambda}^{-1}\epsilon$$
 
@@ -382,6 +366,7 @@ I52 <- Diagonal(52)  # 52 provincias
 
 G_big_test <- kronecker(g_base_test, I52)
 ```
+
 ```{r}
 X_test_mat <- cbind(
   Intercepto = 1,
@@ -409,7 +394,6 @@ parte_estocastica <- solve(A_rho_test, solve(A_lambda_test, epsilon))
 Y_simulado <- parte_determinista + parte_estocastica
 ```
 
-
 ```{r}
 # 7. Convertimos a vector si lo necesitas
 y_pred_vec <- as.vector(Y_simulado)
@@ -428,8 +412,8 @@ mape <- mean(abs((real - y_pred_vec) / valores_reales_ajustados)) * 100
 
 cat("MAE:", mae, "\nRMSE:", rmse, "\nR²:", r2, "\n", "MAPE:", round(mape, 4), "%\n")
 ```
-MAE error absoluto medio: promedio de las diferencias absolutas entre valor real y predicho. Cuanto más bajo mejor
-RMSE Raíz del error cuadrático medio: error promedio de los errores mas grandes. R\^2: La proporcion de variación de los datos reales que es explicada por el modelo (de -inf a 1, siendo 1 prediccion excelente, 0 que el modelo no mejora con respecto a predecir la media, y \<0 que es peor a predecir la media constate).
+
+MAE error absoluto medio: promedio de las diferencias absolutas entre valor real y predicho. Cuanto más bajo mejor RMSE Raíz del error cuadrático medio: error promedio de los errores mas grandes. R\^2: La proporcion de variación de los datos reales que es explicada por el modelo (de -inf a 1, siendo 1 prediccion excelente, 0 que el modelo no mejora con respecto a predecir la media, y \<0 que es peor a predecir la media constate).
 
 ```{r}
 plot(real, y_pred_vec,
@@ -440,11 +424,7 @@ plot(real, y_pred_vec,
 abline(0, 1, col = "red", lwd = 2)
 ```
 
-
-
-
 ## Modelo Spreg 2
-
 
 ```{r}
 modelo_sarar3 <- spreg( formula = tasa ~ ipc+ipcagno,
@@ -498,7 +478,6 @@ parte_estocastica3 <- solve(A_rho_test3, solve(A_lambda_test3, epsilon))
 Y_simulado3 <- parte_determinista3 + parte_estocastica3
 ```
 
-
 ```{r}
 # 7. Convertimos a vector si lo necesitas
 y_pred_vec3 <- as.vector(Y_simulado3)
@@ -513,8 +492,8 @@ mape3 <- mean(abs((real - y_pred_vec3) / valores_reales_ajustados)) * 100
 cat("MAE:", mae3, "\nRMSE:", rmse3, "\nR²:", r23, "\n", "MAPE:", round(mape3, 4), "%\n")
 
 ```
-MAE error absoluto medio: promedio de las diferencias absolutas entre valor real y predicho. Cuanto más bajo mejor
-RMSE Raíz del error cuadrático medio: error promedio de los errores mas grandes. R\^2: La proporcion de variación de los datos reales que es explicada por el modelo (de -inf a 1, siendo 1 prediccion excelente, 0 que el modelo no mejora con respecto a predecir la media, y \<0 que es peor a predecir la media constate).
+
+MAE error absoluto medio: promedio de las diferencias absolutas entre valor real y predicho. Cuanto más bajo mejor RMSE Raíz del error cuadrático medio: error promedio de los errores mas grandes. R\^2: La proporcion de variación de los datos reales que es explicada por el modelo (de -inf a 1, siendo 1 prediccion excelente, 0 que el modelo no mejora con respecto a predecir la media, y \<0 que es peor a predecir la media constate).
 
 ```{r}
 plot(real, y_pred_vec3,
@@ -524,7 +503,6 @@ plot(real, y_pred_vec3,
      main = "Predicción SARAR vs Real (Test)")
 abline(0, 1, col = "red", lwd = 2)
 ```
-
 
 ## GAM
 
@@ -547,8 +525,37 @@ modelo_gam <- gam(Cambios ~ s(ipcagno, k = 40), data = pov2_train_ord)
 
 summary(modelo_gam)
 plot(modelo_gam, residuals = TRUE)
-```
 
+pov2_train_ord$Año_num <- as.numeric(pov2_train_ord$Año_norm)
+pov2_train_ord$producto <- pov2_train_ord$ipc_norm*pov2_train_ord$Año_num
+
+pov2_test_ord$Año_num <- as.numeric(pov2_test_ord$Año_norm)
+pov2_test_ord$producto <- pov2_test_ord$ipc_norm*pov2_test_ord$Año_num
+
+m_gam2 <- gam(Cambios ~ s(ipc_norm,k=10)+s(Año_num,k=14),data=pov2_train_ord)
+summary(m_gam2)
+
+plot(m_gam2, pages = 1, residuals = TRUE, se = TRUE)
+
+gam.check(m_gam2)
+
+
+
+pov2_test_ord$Cambios_pred_gam <- predict(m_gam2, newdata = pov2_test_ord)
+
+real <- pov2_test_ord$Cambios
+pred_GAM <- pov2_test_ord$Cambios_pred_gam
+# Ajustar valores reales para MAPE 
+valores_reales_ajustados <- ifelse(real == 0, 1, real)
+# Calcular métricas
+(mse_GAM <- mean((real - pred_GAM)^2))
+(rmse_GAM <- sqrt(mse_GAM))
+(mae_GAM <- mean(abs(real - pred_GAM)))
+(mape_GAM <- mean(abs((real - pred_GAM) / valores_reales_ajustados)) * 100)
+(r2_GAM <- cor(real, pred_GAM)^2)  # R-cuadrado aproximado
+
+
+```
 
 ```{r}
 
@@ -578,7 +585,3 @@ plot(real, pred_GAM, main = "Predicción GAM vs Valores Reales",
      xlab = "Real Cambios", ylab = "Predicción GAM")
 abline(0, 1, col = "red", lty = 2)
 ```
-
-
-
-
