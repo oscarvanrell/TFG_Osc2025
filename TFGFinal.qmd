@@ -587,8 +587,8 @@ epsilon_durbin <- Matrix(epsilon_durbin, sparse = TRUE)  # para multiplicaciones
 
 # Asegurarse que todo es vector numérico
 X_beta <- X_test %*% beta_durbin
-WX_theta <- W_big_test %*% X_test
-WX_theta <- WX_theta[,-1,drop=FALSE] * theta_durbin
+WX_theta <- W_big_test %*% (X_test[,-1,drop=FALSE])
+WX_theta <- WX_theta * theta_durbin
 A_rho_test_durbin <- Diagonal(n_test_obs_durbin) - rho_durbin * W_big_test
 rhs <-  A_rho_test_durbin %*% (X_beta + WX_theta) 
 
