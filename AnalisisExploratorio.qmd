@@ -1,0 +1,384 @@
+---
+title: "Analisis_esploratorio"
+format: html
+editor: visual
+---
+
+```{r}
+rm(list=ls())
+options(bitmapType = "cairo")  # Añade esto al inicio de tu script
+
+library(tidyverse)
+library(spdep)
+library(spatialreg)
+library(gamlss)
+library(sphet)
+library(xtable)
+library(ggspatial)
+library(ggplot2)
+library(plotly)
+
+library(readxl)
+library(readr)
+library(dplyr)
+library(spdep)
+library(Matrix)
+library(patchwork)  # para combinar gráficos
+library(sf)
+library(units)
+```
+
+# Carga de datos
+
+```{r}
+load("DatosIniciales.RData")
+```
+
+```{r}
+#cargamos los datos del mapa
+pov<-read_sf("shapefiles_provincias_espana/shapefiles_provincias_espana.shp", , options = "ENCODING=UTF8")
+
+nacimientos_filtrado <- Nacimientos %>%
+  filter(Periodo >= "2002M01") %>%
+  filter(Provincias != "Total") 
+
+poblacion_filtrado <- Poblacion %>%
+  filter(Provincias != "Total") %>%
+  filter(Provincias != "residente") %>%
+  filter(Sexo == "Total") %>%
+  filter(Periodo >= "2002")
+
+IPC_filtrado <- IPC_Grupos %>%
+  filter(`Grupos ECOICOP` == "Índice general") %>%
+  filter(Provincias != "Nacional") %>%
+  filter(`Tipo de dato` == "Índice") %>%
+  filter(Periodo >= "2002M01")
+
+
+datos <- merge(x=nacimientos_filtrado, y=IPC_filtrado, 
+               by.x=c("Provincias","Periodo"), by.y=c("Provincias","Periodo"),  all.x=TRUE) %>%
+  separate(Periodo, into = c("Año", "Mes"), sep = "M", extra = "merge")
+
+datos2 <- merge(x=datos, y=poblacion_filtrado, 
+                by.x=c("Provincias", "Año"), by.y=c("Provincias","Periodo"),   all.x=TRUE) %>%
+  select(Provincias, Año, Mes, Total.x, Total.y, Total) %>%
+  rename(Total.Nacimientos = Total.x, Total.IPC = Total.y,  Total.Poblacion=Total) %>%
+  # Separar la columna Provincias en codigo_provincia y nombre_provincia
+  separate(Provincias, into = c("codigo_provincia", "nombre_provincia"), sep = " ", extra = "merge") %>%
+  mutate(tasaNaci = 1E5*Total.Nacimientos/Total.Poblacion)
+
+
+# De momento consideraremos la media anual 
+df <- datos2 %>%
+  filter(nombre_provincia != "residente") %>%
+  group_by(codigo_provincia, nombre_provincia, Año) %>%
+  summarise(tasa_nacim_media_año = mean(tasaNaci, na.rm = TRUE),
+            nacimientosaño = sum(Total.Nacimientos, na.rm = TRUE),
+            ipc_media_año = mean(Total.IPC, na.rm = TRUE),.groups = "drop") %>% 
+  dplyr::arrange(codigo_provincia,,nombre_provincia, Año) %>% 
+  dplyr::group_by(codigo_provincia) %>%
+  dplyr::mutate(Cambios =(nacimientosaño-lag(nacimientosaño))/lag(nacimientosaño)) %>% 
+  ungroup()
+
+pov22 <- merge(x=pov, y=df, 
+              by.x="codigo", by.y="codigo_provincia", all.x=TRUE)
+
+pov22$Año <- as.numeric(as.character(pov22$Año))
+pov22$Año_norm <- (pov22$Año - min(pov22$Año)) / (max(pov22$Año) - min(pov22$Año))
+pov22$ipc_norm <- (pov22$ipc_media_año - min(pov22$ipc_media_año, na.rm = TRUE)) / 
+  (max(pov22$ipc_media_año, na.rm = TRUE) - min(pov22$ipc_media_año, na.rm = TRUE))
+
+
+```
+
+```{r}
+library(splm)
+
+pov22_ord <- pov22 %>%
+  filter(!is.na(Cambios)) %>%
+  arrange(Año, nombre_provincia)
+
+sf_use_s2(FALSE)
+cont.nb3 <- poly2nb(pov22_ord %>% filter(Año == 2003)) # cualquier año sirve pk es fija
+num_vecinos <- card(cont.nb3)
+indices_con_vecinos <- which(num_vecinos > 0)
+
+# Paso 2: Obtener los nombres de provincias con vecinos
+provincias_con_vecinos <- (pov22 %>%
+                             filter(Año == 2003) %>%
+                             arrange(nombre_provincia))$nombre_provincia[indices_con_vecinos]
+
+# Paso 3: Filtrar todo el dataset para quedarte solo con esas provincias
+pov2<- pov22 %>%
+  filter(nombre_provincia %in% provincias_con_vecinos)
+```
+```{r}
+# Filtrar datos
+pov2005 <- pov2 %>% filter(Año == 2003)
+pov2010 <- pov2 %>% filter(Año == 2008)
+pov2015 <- pov2 %>% filter(Año == 2018)
+pov2020 <- pov2 %>% filter(Año == 2023)
+
+# Función base para cada mapa
+crear_mapa <- function(data, anio) {
+  ggplot() +
+    geom_sf(data = data, aes(fill = nacimientosaño)) +
+    coord_sf() +
+    ggspatial::annotation_scale(
+      location = "tl",
+      bar_cols = c("grey60", "white")
+    ) +
+    ggspatial::annotation_north_arrow(
+      location = "bl", which_north = "true",
+      pad_x = unit(0, "in"), pad_y = unit(0, "in"),
+      style = ggspatial::north_arrow_nautical(
+        fill = c("grey40", "white"),
+        line_col = "grey20"
+      )
+    ) +
+    xlab("Longitude") + ylab("Latitude") +
+    scale_fill_gradientn(
+      colours = c("darkred", "orange", "yellow"),
+      name = paste0("Nacimientos ", anio),
+      na.value = "white"
+    ) +
+    ggtitle(paste("Año", anio))
+}
+
+# Crear los 4 mapas
+p1 <- crear_mapa(pov2005, 2003)
+p2 <- crear_mapa(pov2010, 2008)
+p3 <- crear_mapa(pov2015, 2018)
+p4 <- crear_mapa(pov2020, 2023)
+
+# Mostrar en grilla 2x2
+(p1 | p2) /
+(p3 | p4)
+```
+```{r}
+pov2020_ord <- pov2020 %>%
+  filter(!is.na(Cambios)) %>%
+  arrange(Año, nombre_provincia) # MUY IMPORTANTE: primero por año, luego provincia
+
+nb <- spdep::poly2nb(pov2020_ord, queen = TRUE)
+
+plot(st_geometry(pov2020_ord), border = "lightgray")
+plot.nb(nb, st_geometry(pov2020_ord), add = TRUE)
+
+id <- 20 # area id
+pov2020_ord$neighbors <- "other"
+pov2020_ord$neighbors[id] <- "area"
+pov2020_ord$neighbors[nb[[id]]] <- "neighbors"
+ggplot(pov2020_ord) + geom_sf(aes(fill = neighbors)) + theme_bw() +
+  scale_fill_manual(values = c("gray30", "gray", "white"))
+
+# sf_use_s2(FALSE)
+# cont.nb3 <- poly2nb(pov2_train_ord %>% filter(Año == 2003))
+# W_base <- nb2mat(cont.nb3, style = "W", zero.policy = TRUE)
+```
+
+
+
+```{r}
+
+p <- ggplot(pov2, aes(x = Año, y = Cambios, 
+                               group = nombre_provincia, color = nombre_provincia,
+                               text = paste("Provincia:", nombre_provincia,
+                                            "<br>Año:", Año,
+                                            "<br>Tasa:", round(Cambios, 1)))) +
+  geom_line() +
+  labs(title = "Serie temporal de los cambios de Natalidad por provincia",
+       x = "Año", y = "Cambios") +
+  theme_minimal()
+
+ggplotly(p, tooltip = "text")
+```
+```{r}
+p1 <- ggplot(pov2, aes(x = Año, y = nacimientosaño, 
+                               group = nombre_provincia, color = nombre_provincia,
+                               text = paste("Provincia:", nombre_provincia,
+                                            "<br>Año:", Año,
+                                            "<br>Tasa:", round(nacimientosaño, 1)))) +
+  geom_line() +
+  labs(title = "Serie temporal de la Natalidad anual por provincia",
+       x = "Año", y = "Nacimientos") +
+  theme_minimal()
+  #theme(legend.position = "none")  
+
+
+ggplotly(p1, tooltip = "text") %>%
+    layout(showlegend = FALSE)
+
+```
+```{r}
+p2 <- ggplot(pov2, aes(x = Año, y = ipc_media_año, 
+                               group = nombre_provincia, color = nombre_provincia,
+                               text = paste("Provincia:", nombre_provincia,
+                                            "<br>Año:", Año,
+                                            "<br>Tasa:", round(ipc_media_año, 1)))) +
+  geom_line() +
+  labs(title = "Serie temporal del IPC anual por provincia",
+       x = "Año", y = "IPC") +
+  theme_minimal()
+
+ggplotly(p2, tooltip = "text") %>%
+    layout(showlegend = FALSE)
+```
+
+Correlación entre IPC, cambios y tasa (sin hacer los cambios)
+
+```{r}
+library(ggcorrplot)
+
+variables_cor <- pov2 %>%
+  as.data.frame() %>%
+  select(ipc_media_año, Cambios, nacimientosaño) %>%
+  na.omit()
+cor_matrix <- cor(variables_cor)
+
+ggcorrplot(cor_matrix,
+           hc.order = TRUE,
+           type = "lower",
+           colors = c("blue", "white", "red"),
+           lab = TRUE) +
+  labs(title = "Correlación entre IPC, Cambios y Nacimientos") +
+  theme(plot.title = element_text(size = 15, face = 'bold'))
+```
+
+X e Y son `Cambios` y `ipc_media_año` respectivamente: $$\begin{cases}
+H_{0}: &  \rho_{X,Y}=0\\
+H_{1}: & \rho_{X,Y}<0
+\end{cases}$$
+
+```{r}
+cor.test(pov2$Cambios, pov2$ipc_media_año , alternative="less")
+```
+
+Lo repito tambien con ipc_norm y año_norm ya que son las que usamos en el spreg
+
+```{r}
+library(ggcorrplot)
+
+variables_cor <- pov2 %>%
+  as.data.frame() %>%
+  select(ipc_norm,Año_norm, Cambios, nacimientosaño) %>%
+  na.omit()
+cor_matrix <- cor(variables_cor)
+
+ggcorrplot(cor_matrix,
+           hc.order = TRUE,
+           type = "lower",
+           colors = c("blue", "white", "red"),
+           lab = TRUE) +
+  labs(title = "Correlación entre IPC, Cambios y Nacimientos") +
+  theme(plot.title = element_text(size = 15, face = 'bold'))
+```
+
+Un modelo lineal entre el cambio y el IPC.
+
+```{r}
+modelo_lin <- lm(Cambios ~ ipc_norm, data = pov2)
+summary(modelo_lin)
+```
+
+```{r}
+ggplot(pov2, aes(x = ipc_norm, y = Cambios)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", col = "blue", se = TRUE) +
+  labs(title = "Modelo lineal: Cambios ~ IPC",
+       x = "IPC medio anual",
+       y = "Cambio en nacimientos") +
+  theme_minimal()
+```
+
+Gráfico de ACF de la variable cambio por cada provincia
+
+```{r}
+provincias <- unique(pov2$nombre_provincia)
+
+# Crear gráfico ACF por provincia
+for (prov in provincias) {
+  datos_prov <- pov2 %>%
+    filter(nombre_provincia == prov) %>%
+    arrange(Año)  # Importante para mantener orden temporal
+  
+  cambios_ts <- na.omit(datos_prov$Cambios)
+  
+  if (length(cambios_ts) > 1) {  # Evitar error si hay pocos datos
+    acf(cambios_ts, main = paste("ACF de Cambios -", prov))
+  }
+}
+```
+
+
+```{r}
+Poblacion2 <- read_delim( "C:/Users/oscar/Documents/oscar/4t_carrera/TFG/TFG_Osc2025/Poblacion.csv",
+    delim = ";", escape_double = FALSE, locale = locale(decimal_mark = ",", 
+        grouping_mark = "."), trim_ws = TRUE)
+
+IPC_Grupos2 <- read_delim("C:/Users/oscar/Documents/oscar/4t_carrera/TFG/TFG_Osc2025/IPCgrupos.csv", 
+    delim = ";", escape_double = FALSE, locale = locale(decimal_mark = ",", 
+        grouping_mark = "."), trim_ws = TRUE)
+
+Nacimientos2 <- read_delim("C:/Users/oscar/Documents/oscar/4t_carrera/TFG/TFG_Osc2025/Nacimientos.csv", 
+    delim = ";", escape_double = FALSE, locale = locale(decimal_mark = ",", 
+        grouping_mark = "."), trim_ws = TRUE)
+```
+
+```{r}
+
+años_filtrar <- c(2023, 2018, 2013, 2008, 2003, 1998, 1993, 1898, 1883)
+provincias_interes <- c("28", "08") 
+#c("28", "08", "41", "46", "33", "50", "32","11", "03","30","48","10")
+
+
+nacimientos2_filtrado <- Nacimientos2 %>%
+  filter(Provincias != "Total") %>%
+  separate(Periodo, into = c("Año", "Mes"), sep = "M", extra = "merge")%>%
+  separate(Provincias, into = c("codigo_provincia", "nombre_provincia"), sep = " ", extra = "merge") %>%
+  filter(Año %in% años_filtrar & codigo_provincia %in% provincias_interes)
+
+
+```
+
+
+```{r}
+unique(Nacimientos2$Provincias)
+```
+```{r}
+ggplot(nacimientos2_filtrado, aes(x = factor(Año), y = Total)) +
+  geom_boxplot(fill = "steelblue") +
+  facet_wrap(~ nombre_provincia, ncol = 3) +  # Ajusta ncol si quieres otra disposición
+  scale_fill_brewer(palette = "Set2") +  # Cambia paleta si deseas
+  scale_y_continuous(limits = c(0, 7500)) +  # ← Aquí fijas el eje Y
+
+  theme_minimal() +
+  labs(
+    title = "Boxplot de la Tasa de Fertilidad Total por Provincia",
+    x = "Año",
+    y = "Tasa de Fertilidad Total"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "none"  # Quitamos leyenda porque el color ya está separado por facetas
+  )
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

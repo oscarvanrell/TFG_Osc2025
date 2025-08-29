@@ -28,7 +28,7 @@ library(sf)
 library(units)
 ```
 
-# Carga de datos
+  # Carga de datos
 
 ```{r}
 load("DatosIniciales.RData")
@@ -64,7 +64,7 @@ datos2 <- merge(x=datos, y=poblacion_filtrado,
   select(Provincias, Año, Mes, Total.x, Total.y, Total) %>%
   rename(Total.Nacimientos = Total.x, Total.IPC = Total.y,  Total.Poblacion=Total) %>%
   # Separar la columna Provincias en codigo_provincia y nombre_provincia
-  separate(Provincias, into = c("codigo_provincia", "nombre_provincia"), sep = " ", extra = "merge") %>%
+    separate(Provincias, into = c("codigo_provincia", "nombre_provincia"), sep = " ", extra = "merge") %>%
   mutate(tasaNaci = 1E5*Total.Nacimientos/Total.Poblacion)
 
 
@@ -121,202 +121,6 @@ En un principio la variable de interés en la que se iban a basar el estudio de 
 
 Como variable explicativa vamos a tomar el producto de ipc_norm \* Año_norm, estas variables son el resultado de normalizar los datos del ipc y año para tener la misma escala y tansformar sus valores dentro del rango \[0,1\], consiguiendo que el valor mínimo se convierta en 0, el máximo en 1, y los demñas se ajusten proporcionalmente a esos valores. Esto se consiguie mediante la siguiente formula $$Año\_norm =\frac{Año - min(Año)}{max(Año) - min(Año)}$$
 
-# Analisis exploratirio
-
-```{r}
-# Filtrar datos
-pov2005 <- pov2 %>% filter(Año == 2005)
-pov2010 <- pov2 %>% filter(Año == 2010)
-pov2015 <- pov2 %>% filter(Año == 2015)
-pov2020 <- pov2 %>% filter(Año == 2020)
-
-# Función base para cada mapa
-crear_mapa <- function(data, anio) {
-  ggplot() +
-    geom_sf(data = data, aes(fill = nacimientosaño)) +
-    coord_sf() +
-    ggspatial::annotation_scale(
-      location = "tl",
-      bar_cols = c("grey60", "white")
-    ) +
-    ggspatial::annotation_north_arrow(
-      location = "bl", which_north = "true",
-      pad_x = unit(0, "in"), pad_y = unit(0, "in"),
-      style = ggspatial::north_arrow_nautical(
-        fill = c("grey40", "white"),
-        line_col = "grey20"
-      )
-    ) +
-    xlab("Longitude") + ylab("Latitude") +
-    scale_fill_gradientn(
-      colours = c("darkred", "orange", "yellow"),
-      name = paste0("Nacimientos ", anio),
-      na.value = "white"
-    ) +
-    ggtitle(paste("Año", anio))
-}
-
-# Crear los 4 mapas
-p1 <- crear_mapa(pov2005, 2005)
-p2 <- crear_mapa(pov2010, 2010)
-p3 <- crear_mapa(pov2015, 2015)
-p4 <- crear_mapa(pov2020, 2020)
-
-# Mostrar en grilla 2x2
-(p1 | p2) /
-(p3 | p4)
-```
-
-```{r}
-pov2020_ord <- pov2020 %>%
-  filter(!is.na(Cambios)) %>%
-  arrange(Año, nombre_provincia) # MUY IMPORTANTE: primero por año, luego provincia
-
-nb <- spdep::poly2nb(pov2020_ord, queen = TRUE)
-
-plot(st_geometry(pov2020_ord), border = "lightgray")
-plot.nb(nb, st_geometry(pov2020_ord), add = TRUE)
-
-id <- 20 # area id
-pov2020_ord$neighbors <- "other"
-pov2020_ord$neighbors[id] <- "area"
-pov2020_ord$neighbors[nb[[id]]] <- "neighbors"
-ggplot(pov2020_ord) + geom_sf(aes(fill = neighbors)) + theme_bw() +
-  scale_fill_manual(values = c("gray30", "gray", "white"))
-
-# sf_use_s2(FALSE)
-# cont.nb3 <- poly2nb(pov2_train_ord %>% filter(Año == 2003))
-# W_base <- nb2mat(cont.nb3, style = "W", zero.policy = TRUE)
-```
-
-
-```{r}
-
-p <- ggplot(pov2, aes(x = Año, y = Cambios, 
-                               group = nombre_provincia, color = nombre_provincia,
-                               text = paste("Provincia:", nombre_provincia,
-                                            "<br>Año:", Año,
-                                            "<br>Tasa:", round(Cambios, 1)))) +
-  geom_line() +
-  labs(title = "Serie temporal de los cambios de Natalidad por provincia",
-       x = "Año", y = "Cambios") +
-  theme_minimal()
-
-ggplotly(p, tooltip = "text")
-```
-
-```{r}
-p1 <- ggplot(pov2, aes(x = Año, y = nacimientosaño, 
-                               group = nombre_provincia, color = nombre_provincia,
-                               text = paste("Provincia:", nombre_provincia,
-                                            "<br>Año:", Año,
-                                            "<br>Tasa:", round(nacimientosaño, 1)))) +
-  geom_line() +
-  labs(title = "Serie temporal de la Natalidad anual por provincia",
-       x = "Año", y = "Cambios") +
-  theme_minimal()
-
-ggplotly(p1, tooltip = "text")
-```
-
-```{r}
-p2 <- ggplot(pov2, aes(x = Año, y = ipc_media_año, 
-                               group = nombre_provincia, color = nombre_provincia,
-                               text = paste("Provincia:", nombre_provincia,
-                                            "<br>Año:", Año,
-                                            "<br>Tasa:", round(ipc_media_año, 1)))) +
-  geom_line() +
-  labs(title = "Serie temporal del IPC anual por provincia",
-       x = "Año", y = "Cambios") +
-  theme_minimal()
-
-ggplotly(p2, tooltip = "text")
-```
-
-Correlación entre IPC, cambios y tasa (sin hacer los cambios)
-
-```{r}
-library(ggcorrplot)
-
-variables_cor <- pov2 %>%
-  as.data.frame() %>%
-  select(ipc_media_año, Cambios, nacimientosaño) %>%
-  na.omit()
-cor_matrix <- cor(variables_cor)
-
-ggcorrplot(cor_matrix,
-           hc.order = TRUE,
-           type = "lower",
-           colors = c("blue", "white", "red"),
-           lab = TRUE) +
-  labs(title = "Correlación entre IPC, Cambios y Nacimientos") +
-  theme(plot.title = element_text(size = 15, face = 'bold'))
-```
-
-X e Y son `Cambios` y `ipc_media_año` respectivamente: $$\begin{cases}
-H_{0}: &  \rho_{X,Y}=0\\
-H_{1}: & \rho_{X,Y}<0
-\end{cases}$$
-
-```{r}
-cor.test(pov2$Cambios, pov2$ipc_media_año , alternative="less")
-```
-
-Lo repito tambien con ipc_norm y año_norm ya que son las que usamos en el spreg
-
-```{r}
-library(ggcorrplot)
-
-variables_cor <- pov2 %>%
-  as.data.frame() %>%
-  select(ipc_norm,Año_norm, Cambios, nacimientosaño) %>%
-  na.omit()
-cor_matrix <- cor(variables_cor)
-
-ggcorrplot(cor_matrix,
-           hc.order = TRUE,
-           type = "lower",
-           colors = c("blue", "white", "red"),
-           lab = TRUE) +
-  labs(title = "Correlación entre IPC, Cambios y Nacimientos") +
-  theme(plot.title = element_text(size = 15, face = 'bold'))
-```
-
-Un modelo lineal entre el cambio y el IPC.
-
-```{r}
-modelo_lin <- lm(Cambios ~ ipc_norm, data = pov2)
-summary(modelo_lin)
-```
-
-```{r}
-ggplot(pov2, aes(x = ipc_norm, y = Cambios)) +
-  geom_point(alpha = 0.6) +
-  geom_smooth(method = "lm", col = "blue", se = TRUE) +
-  labs(title = "Modelo lineal: Cambios ~ IPC",
-       x = "IPC medio anual",
-       y = "Cambio en nacimientos") +
-  theme_minimal()
-```
-
-Gráfico de ACF de la variable cambio por cada provincia
-
-```{r}
-provincias <- unique(pov2$nombre_provincia)
-
-# Crear gráfico ACF por provincia
-for (prov in provincias) {
-  datos_prov <- pov2 %>%
-    filter(nombre_provincia == prov) %>%
-    arrange(Año)  # Importante para mantener orden temporal
-  
-  cambios_ts <- na.omit(datos_prov$Cambios)
-  
-  if (length(cambios_ts) > 1) {  # Evitar error si hay pocos datos
-    acf(cambios_ts, main = paste("ACF de Cambios -", prov))
-  }
-}
-```
 
 # Analisis estadístico
 
@@ -423,8 +227,8 @@ real <- pov2_test_ord$Cambios
 ## SARAR
 
 Recordemos que el modelo SARAR sigue: $$\begin{cases}
- Y= \rho Wy + x^T\beta + u\\
- U = \lambda Gu+\epsilon 
+ y= \rho Wy + x^T\beta + u\\
+ u = \lambda Gu+\epsilon 
  \end{cases}$$ y consideraremos $\epsilon\sim N(0,\sigma^2I)$. Para resolverlo necesitamos las variables $\lambda$, $\rho$ y $\beta$, de las cuales vamos a obtener mediante:
 
 ```{r}
@@ -446,6 +250,9 @@ moran.test(res_sarar,listw = W_base1,zero.policy = TRUE)
 Indice de moran cercano a 0 con p-valor ~ 1, el modelo ha capturado bien la autocorrelacion espacial, no hay evidencia de estructura espacial restante en los residuos
 
 
+
+
+
 ```{r}
 rho_sarar <- modelo_sarar$rho
 lambda_sarar <-modelo_sarar$lambda
@@ -459,7 +266,6 @@ A_{\rho}X\beta + A_{\rho}^{-1}A_{\lambda}^{-1}\epsilon$$
 Como no podemos obtener $\epsilon$ para los valores del test, usaremos solo la estimación del SAR
 $$Y=A_{\rho}^{-1}X\beta $$ para predecir los datos
 ```{r}
-#5/7
 
 A_rho_test_sarar <- Diagonal(n_test_obs) - rho_sarar * W_big_test
 
@@ -467,27 +273,7 @@ Y_simulado_sarar  <- solve(A_rho_test_sarar, X_test %*% beta_sarar)
 
 ```
 
-```{r}
 
-
-# set.seed(123)  # reproducibilidad
-# n_test_obs_sarar <- nrow(X_test)
-# epsilon_sarar <- rnorm(n_test_obs_sarar, mean = 0, sd = sigma_sarar)
-# epsilon_sarar <- Matrix(epsilon_sarar, sparse = TRUE)  # para multiplicaciones
-# 
-# # 3. Construir matrices A_rho_test y A_lambda_test
-# A_rho_test_sarar <- Diagonal(n_test_obs_sarar) - rho_sarar * W_big_test
-# A_lambda_test_sarar <- Diagonal(n_test_obs_sarar) - lambda_sarar * G_big_test
-# 
-# # 4. Predicción estructural: (I - rho W)^(-1) X beta
-# parte_determinista_sarar <- solve(A_rho_test_sarar, X_test %*% beta_sarar)
-# 
-# # 5. Parte estocástica (error): (I - rho W)^(-1)(I - lambda G)^(-1) epsilon
-# parte_estocastica_sarar <- solve(A_rho_test_sarar, solve(A_lambda_test_sarar, epsilon_sarar))
-# 
-# # 6. Predicción total
-# Y_simulado_sarar <- parte_determinista_sarar + parte_estocastica_sarar
-```
 
 ```{r}
 # 7. Convertimos a vector si lo necesitas
@@ -516,29 +302,110 @@ abline(0, 1, col = "red", lwd = 2)
 ```
 
 ver la no normalidad del modelo 
-### duda
+### No normal
 
-¿El modelo SARAR calcula los residuales A*Y-X*\beta (tienen componente espacial) Hay que calcular residuales: B\*residuales de arriba.? Esto es un apunte que tenia en mis notas pero no me queda claro de si me lo he inventado o como es
+
+
 
 ```{r}
-library(nortest)
+library(spatialreg)   # donde vive sacsarlm
+u   <- residuals(modelo_sarar, type = "pearson")# o type = "response"
+fit <- fitted(modelo_sarar)
+```
 
-hh<-as.numeric(A_rho_test_sarar*residuals(modelo_sarar))
-lillie.test(hh)
+resiudals devuelve los residuos de respuesta $\widehat u=y-\widehat y$. Para comprobar normalidad y homoced de $\epsilon$ hay que filtrar los residuos por la parte espacial/temoral: 
+$$\widehat \epsilon = (I-\lambda G)\widehat u$$
+```{r}
+e = (diag(nrow(G_big_train)) - lambda_sarar * G_big_train) %*% u
 ```
 
 ```{r}
-shapiro.test(hh) #sensible a muestras grandes...
+shapiro.test(e) #type=pearson estandariza los errores
+
+# Jarque–Bera (útil si n es grande)
+# install.packages("tseries") si hace falta
+tseries::jarque.bera.test(e)
+
+# Anderson–Darling (opcional)
+# install.packages("nortest")
+nortest::ad.test(e)
 ```
+
+
+
 
 ```{r}
-#library(car)
+par(mfrow = c(2, 2))
+# QQ-plot
+qqnorm(e); qqline(e)
 
-plot(density(residuals(modelo_sarar)))
-curve(dnorm(x,mean=0,sd=sd(residuals(modelo_sarar))), add=TRUE)
+# Histograma (rápido)
+hist(e, breaks = "FD", main = "Residuos SARAR", xlab = "e")
+
+
+# Shapiro-Wilk (muestras pequeñas/medianas)
+shapiro.test(residuals(modelo_sarar, type = "pearson")) #type=pearson estandariza los errores
+
+# Jarque–Bera (útil si n es grande)
+# install.packages("tseries") si hace falta
+tseries::jarque.bera.test(residuals(modelo_sarar, type = "pearson"))
+
+# Anderson–Darling (opcional)
+# install.packages("nortest")
+nortest::ad.test(residuals(modelo_sarar, type = "pearson"))
+```
+### white
+https://rpubs.com/Carlos_Martinez/505361
+```{r}
+library(lmtest)
+
+# 1. Extraer residuos del modelo SARAR
+res_sarar <- residuals(modelo_sarar)
+
+# 2. Variable dependiente para el test: residuos al cuadrado
+res2 <- e^2
+
+# 3. Crear la matriz de regresores para el test de White
+#    Incluye:
+#    - Variable original
+#    - Su cuadrado
+#    - Productos cruzados si tienes más de 1 regresor
+ipc <- modelo_df$ipcagno
+ipc2 <- ipc^2
+
+# 4. Regresión auxiliar
+#white_aux <- lm(res2 ~ ipc + ipc2, data = modelo_df)
+white_aux <- lm(res2 ~ ipcagno + ipcagno^2,
+  data = modelo_df)
+
+
+# 5. Calcular la estadística LM
+R2_white <- summary(white_aux)$r.squared
+n <- nrow(modelo_df)
+LM_white <- n * R2_white #estadístico de White (similar al de Breusch–Pagan)
+pval_white <- 1 - pchisq(LM_white, df = length(coef(white_aux)) - 1) #Se compara con una chi cuadrado con grados de libertad = número de regresores en la auxiliar (sin contar la constante).
+
+# 6. Mostrar resultados
+cat("Test de White adaptado a SARAR:\n")
+cat("LM =", LM_white, "\n")
+cat("gl =", length(coef(white_aux)) - 1, "\n")
+cat("p-valor =", pval_white, "\n")
+
+if (pval_white < 0.05) {
+  cat("Conclusión: Heterocedasticidad detectada.\n")
+} else {
+  cat("Conclusión: No se detecta heterocedasticidad.\n")
+}
+
 ```
 
-Como nuestros datos no cumplen con la hipotesis de normalidad, realizamos el modelo sarar bajo la funcion de R SPREG, ya que es mas flexible y permite la no normalidad de los errores. 
+
+
+
+
+
+
+
 
 ## SPREG
 
@@ -556,6 +423,33 @@ modelo_spreg <- spreg( formula = Cambios ~ ipcagno,
 summary(modelo_spreg)
 #modelo_sarar2[]
 
+
+
+#modelo_sar_robusto <- spreg(
+#  formula = Cambios ~ ipcagno,
+#  data = modelo_df,
+#  listw = W_big_train,
+#  model = "lag",
+#  het = TRUE
+#)
+#summary(modelo_sar_robusto)
+
+# SEM con errores heterocedásticos (robusto)
+#modelo_sem_robusto <- spreg(
+#  formula = Cambios ~ ipcagno,
+#  data = modelo_df,
+#  listw = W_big_train,
+#  model = "error",
+#  het = TRUE
+#)
+#summary(modelo_sem_robusto)
+
+```
+
+```{r}
+res_spreg<-residuals(modelo_spreg)
+moran.plot(res_spreg,listw = W_base1,zero.policy = TRUE)
+moran.test(res_spreg,listw = W_base1,zero.policy = TRUE)
 ```
 
 ```{r}
@@ -583,25 +477,7 @@ Y_simulado_spreg <- solve(A_rho_test_spreg, X_test %*% beta_spreg)
 
 ```
 
-```{r}
-# set.seed(123)  # reproducibilidad
-# n_test_obs_spreg <- nrow(X_test)
-# epsilon_spreg <- rnorm(n_test_obs_spreg, mean = 0, sd = sigma_spreg[1,1])
-# epsilon_spreg <- Matrix(epsilon_spreg, sparse = TRUE)  # para multiplicaciones
-# 
-# # 3. Construir matrices A_rho_test y A_lambda_test
-# A_rho_test_spreg <- Diagonal(n_test_obs_spreg) - rho_spreg * W_big_test
-# A_lambda_test_spreg <- Diagonal(n_test_obs_spreg) - lambda_spreg * G_big_test
-# 
-# # 4. Predicción estructural: (I - rho W)^(-1) X beta
-# parte_determinista_spreg <- solve(A_rho_test_spreg, X_test %*% beta_spreg)
-# 
-# # 5. Parte estocástica (error): (I - rho W)^(-1)(I - lambda G)^(-1) epsilon
-# parte_estocastica_spreg <- solve(A_rho_test_spreg, solve(A_lambda_test_spreg, epsilon_spreg))
-# 
-# # 6. Predicción total
-# Y_simulado_spreg <- parte_determinista_spreg + parte_estocastica_spreg
-```
+
 
 ```{r}
 # 7. Convertimos a vector si lo necesitas
@@ -628,6 +504,30 @@ plot(real, y_pred_vec_spreg,
      main = "Predicción SARAR SPREG vs Real")
 abline(0, 1, col = "red", lwd = 2)
 ```
+
+En un modelo con buen ajuste:
+Los puntos deberían alinearse alrededor de la recta y = x (línea diagonal imaginaria).
+Si la predicción tiende a ser constante o tiene poca varianza mientras los valores reales varían más, algo va mal.
+
+Las predicciones están muy concentradas verticalmente, especialmente entre 0.0014 y 0.0026.
+Mientras tanto, los valores reales (eje X) se extienden desde -0.10 a 0.05.
+Hay una gran discrepancia en la escala y dispersión entre predicción y valores reales.
+No hay correlación visual clara, y el modelo parece subestimar mucha variabilidad del dato real.
+La línea roja vertical en X=0 parece indicar el punto de corte neutral (ni subida ni bajada), pero muchas predicciones son similares independientemente del valor real.
+
+El modelo no está capturando bien la estructura del valor real.
+Está haciendo predicciones muy planas o poco diferenciadas, probablemente por:
+Poca capacidad explicativa del predictor ipcagno.
+Exceso de suavizado por la estructura espacial del modelo.
+El modelo está bien especificado estadísticamente (corrige autocorrelación), pero no necesariamente es predictivo.
+
+Aunque el error absoluto medio es bajo, el MAPE desastroso y el R² bajísimo indican que el modelo apenas explica variación real en Cambios.
+
+Tu gráfico muestra que el modelo corrige autocorrelación, pero no es predictivamente potente.
+Esto justifica que el SARAR mejora las propiedades del modelo, pero tal vez se necesiten más variables o estructura temporal para mejorar predicción.
+
+
+
 
 ## DURBIN
 
@@ -668,23 +568,7 @@ A_rho_test_durbin <- Diagonal(n_test_obs) - rho_durbin * W_big_test
 Y_simulado_durbin <-  A_rho_test_durbin %*% (X_beta + WX_theta) 
 ```
 
-```{r}
-# set.seed(123)  # reproducibilidad
-# n_test_obs_durbin <- nrow(X_test)
-# epsilon_durbin <- rnorm(n_test_obs_durbin, mean = 0, sd = sigma_durbin)
-# epsilon_durbin <- Matrix(epsilon_durbin, sparse = TRUE)  # para multiplicaciones
-# 
-# # Asegurarse que todo es vector numérico
-# X_beta <- X_test %*% beta_durbin
-# WX_theta <- W_big_test %*% (X_test[,-1,drop=FALSE])
-# WX_theta <- WX_theta * theta_durbin
-# A_rho_test_durbin <- Diagonal(n_test_obs_durbin) - rho_durbin * W_big_test
-# rhs <-  A_rho_test_durbin %*% (X_beta + WX_theta) 
-# 
-# # Predicción final
-# Y_simulado_durbin <- rhs + A_rho_test_durbin %*% epsilon_durbin
 
-```
 
 
 ```{r}
@@ -712,6 +596,7 @@ plot(real, y_pred_vec_durbin,
      main = "Predicción durbin vs Real")
 abline(0, 1, col = "red", lwd = 2)
 ```
+
 
 ## GAM
 
@@ -764,382 +649,3 @@ plot(real, y_pred_vec_gam, main = "Predicción GAM vs Valores Reales",
 abline(0, 1, col = "red", lty = 2)
 ```
 
-## Año tras año spreg
-
-### 2021
-
-```{r}
-# División temporal
-#pov2_train <- pov2 %>% filter(Año >= 2002 & Año <= 2020)
-pov2_test_21  <- pov2 %>% filter(Año == 2021)
-pov2_test_ord_21 <- pov2_test_21 %>%
-  filter(!is.na(Cambios)) %>%
-  arrange(Año, nombre_provincia)
-
-#W_sparse <- Matrix(W_base, sparse = TRUE)  # ya creada antes
-n_test_21  <- nrow(pov2_test_ord_21[pov2_test_ord_21$codigo == "01", ])
-I_test_21 <- Diagonal(n_test_21)  # 10 años para el test (2014–2023)
-W_big_test_21 <- kronecker(I_test_21, W_base)
-W2_21 <- mat2listw(W_big_test_21, style="W", zero.policy = TRUE)
-```
-
-
-
-```{r}
-X_test_mat_21 <- cbind(
-  Intercepto = 1,
-  ipcagno = pov2_test_ord_21$ipc_norm * as.numeric(pov2_test_ord_21$Año_norm)
-)
-X_test_21 <- Matrix(X_test_mat_21, sparse = TRUE)
-real_21 <- pov2_test_ord_21$Cambios
-n_test_obs_spreg_21 <- nrow(X_test_21)
-
-```
-
-En este primer caso, como el train es el mismo que antes, obtenemos los mismos datos del modelo y las mismas variables, asi que podemos pasar directamente al calculo de las observaciones del 2021.
-
-Una vez obtenidos los coeficientes, vamos a obtener los valores para los años el test resolviendo, como en el SARAR anterior: $$Y=(Id-\rho W)^{-1}X\beta + (Id-\rho W)^{-1}(Id-\lambda G)^{-1}\epsilon =\\
-A_{\rho}X\beta + A_{\rho}^{-1}A_{\lambda}^{-1}\epsilon$$
-
-Como no podemos obtener $\epsilon$ para los valores del test, usaremos solo la estimación del SAR
-$$Y=A_{\rho}^{-1}X\beta $$ para predecir los datos
-
-```{r}
-A_rho_test_spreg_21 <- Diagonal(n_test_obs_spreg_21) - rho_spreg * W_big_test_21
-
-# 4. Predicción estructural: (I - rho W)^(-1) X beta
-Y_simulado_spreg_21 <- solve(A_rho_test_spreg_21, X_test_21 %*% beta_spreg)
-
-```
-
-```{r}
-# set.seed(123)  # reproducibilidad
-# n_test_obs_spreg_21 <- nrow(X_test_21)
-# epsilon_spreg <- rnorm(n_test_obs_spreg_21, mean = 0, sd = sigma_spreg[1,1])
-# epsilon_spreg <- Matrix(epsilon_spreg_21, sparse = TRUE)  # para multiplicaciones
-# 
-# # 3. Construir matrices A_rho_test y A_lambda_test
-# A_rho_test_spreg_21 <- Diagonal(n_test_obs_spreg_21) - rho_spreg * W_big_test_21
-# A_lambda_test_spreg_21 <- Diagonal(n_test_obs_spreg_21) - lambda_spreg * G_big_test_21
-# 
-# # 4. Predicción estructural: (I - rho W)^(-1) X beta
-# parte_determinista_spreg_21 <- solve(A_rho_test_spreg_21, X_test_21 %*% beta_spreg)
-# 
-# # 5. Parte estocástica (error): (I - rho W)^(-1)(I - lambda G)^(-1) epsilon
-# parte_estocastica_spreg_21 <- solve(A_rho_test_spreg_21, solve(A_lambda_test_spreg_21, epsilon_spreg_21))
-# 
-# # 6. Predicción total
-# Y_simulado_spreg_21 <- parte_determinista_spreg_21 + parte_estocastica_spreg_21
-```
-
-```{r}
-# 7. Convertimos a vector si lo necesitas
-y_pred_vec_spreg_21 <- as.vector(Y_simulado_spreg_21)
-
-#valores_reales_ajustados <- ifelse(real == 0, 1, real)
-
-
-mae_spreg_21 <- mean(abs(y_pred_vec_spreg_21 - real_21), na.rm = TRUE)
-rmse_spreg_21 <- sqrt(mean((y_pred_vec_spreg_21 - real_21)^2, na.rm = TRUE))
-r2_spreg_21 <- cor(y_pred_vec_spreg_21, real_21, use = "complete.obs")^2
-mape_spreg_21 <- mean(abs((real_21 - y_pred_vec_spreg_21) / real_21)) * 100
-
-
-
-cat("MAE:", mae_spreg_21, "\nRMSE:", rmse_spreg_21, "\nR²:", r2_spreg_21, "\nMAPE:", round(mape_spreg_21, 4), "%\n")
-```
-
-```{r}
-plot(real_21, y_pred_vec_spreg_21,
-     xlab = "Valor real (test)",
-     ylab = "Predicción SARAR SPREG",
-     pch = 16, col = "blue",
-     main = "Predicción SARAR SPREG vs Real 2021")
-abline(0, 1, col = "red", lwd = 2)
-```
-
-### 2022
-
-```{r}
-# División temporal
-pov2_train_22 <- pov2 %>% filter(Año >= 2002 & Año <= 2021)
-pov2_test_22  <- pov2 %>% filter(Año == 2022)
-
-pov2_train_ord_22 <- pov2_train_22 %>%
-  filter(!is.na(Cambios)) %>%
-  arrange(Año, nombre_provincia) # MUY IMPORTANTE: primero por año, luego provincia
-
-sf_use_s2(FALSE)
-cont.nb3_22 <- poly2nb(pov2_train_ord_22 %>% filter(Año == 2003))
-W_base_22 <- nb2mat(cont.nb3_22, style = "W", zero.policy = TRUE)  # matriz normal
-
-# Crear matriz identidad de orden 20 (años)
-n_train_22  <- nrow(pov2_train_ord_22[pov2_train_ord_22$codigo == "01", ])
-I_train_22 <- diag(n_train_22)
-# Kronecker: W final para el modelo
-W_big_train_22 <- kronecker(I_train_22, W_base_22)
-W1_22 <- mat2listw(W_big_train_22, style="W", zero.policy = TRUE)
-
-
-# Crear matriz temporal g_{20x20}
-g_base_22 <- matrix(0, nrow = n_train_22, ncol = n_train_22)
-for (i in 2:n_train_22) {
-  g_base_22[i, i - 1] <- 2/3
-  g_base_22[i, i - 2] <- 1/3
-}
-G_big_train_22 <- kronecker(g_base_22, I47)
-G1_22 <- mat2listw(G_big_train_22, style="W", zero.policy = TRUE)
-
-# Crear vectores Y e X
-Y_22 <- pov2_train_ord_22$Cambios
-X_22 <- cbind(pov2_train_ord_22$ipc_norm, as.numeric(pov2_train_ord_22$Año_norm))
-# Creamos el data frame final con las variables necesarias
-modelo_df_22 <- data.frame(
-  Cambios = Y_22,
-  ipc = X_22[,1],
-  agno = X_22[,2],
-  ipcagno=X_22[,1]*X_22[,2])
-
-pov2_test_ord_22 <- pov2_test_22 %>%
-  filter(!is.na(Cambios)) %>%
-  arrange(Año, nombre_provincia)
-
-#W_sparse <- Matrix(W_base, sparse = TRUE)  # ya creada antes
-n_test_22  <- nrow(pov2_test_ord_22[pov2_test_ord_22$codigo == "01", ])
-I_test_22 <- Diagonal(n_test_22)  # 10 años para el test (2014–2023)
-W_big_test_22 <- kronecker(I_test_22, W_base_22)
-W2_22 <- mat2listw(W_big_test_22, style="W", zero.policy = TRUE)
-
-X_test_mat_22 <- cbind(
-  Intercepto = 1,
-  ipcagno = pov2_test_ord_22$ipc_norm * as.numeric(pov2_test_ord_22$Año_norm)
-)
-X_test_22 <- Matrix(X_test_mat_22, sparse = TRUE)
-real_22 <- pov2_test_ord_22$Cambios
-n_test_obs_spreg_22 <- nrow(X_test_22)
-
-```
-
-
-```{r}
-##Modelo 1
-# Ejecutar modelo SARAR espaciotemporal
-modelo_spreg_22 <- spreg( formula = Cambios ~ ipcagno,
-                       data = modelo_df_22,  
-                       model="sarar",
-                       listw =W_big_train_22,  
-                       listw2 = G_big_train_22, 
-                       het = TRUE,
-                       q=1)
-
-summary(modelo_spreg_22)
-#modelo_sarar2[]
-
-```
-
-```{r}
-coefs_spreg_22 <- modelo_spreg_22$coefficients[, 1]
-rho_spreg_22 <- coefs_spreg_22['rho']
-lambda_spreg_22 <-coefs_spreg_22["lambda"]
-sigma2_spreg_22 <- modelo_spreg_22$s2
-sigma_spreg_22 <- sqrt(sigma2_spreg_22)
-beta_spreg_22 <- coefs_spreg_22[c("(Intercept)", "ipcagno")]
-```
-
-
-
-```{r}
-A_rho_test_spreg_22 <- Diagonal(n_test_obs_spreg_22) - rho_spreg_22 * W_big_test_22
-
-# 4. Predicción estructural: (I - rho W)^(-1) X beta
-Y_simulado_spreg_22<- solve(A_rho_test_spreg_22, X_test_22 %*% beta_spreg_22)
-
-```
-
-
-```{r}
-# set.seed(123)  # reproducibilidad
-# n_test_obs_spreg_22 <- nrow(X_test_22)
-# epsilon_spreg_22 <- rnorm(n_test_obs_spreg_22, mean = 0, sd = sigma_spreg_22[1,1])
-# epsilon_spreg_22 <- Matrix(epsilon_spreg_22, sparse = TRUE)  # para multiplicaciones
-# 
-# # 3. Construir matrices A_rho_test y A_lambda_test
-# A_rho_test_spreg_22 <- Diagonal(n_test_obs_spreg_22) - rho_spreg_22 * W_big_test_22
-# A_lambda_test_spreg_22 <- Diagonal(n_test_obs_spreg_22) - lambda_spreg_22 * G_big_test_22
-# 
-# # 4. Predicción estructural: (I - rho W)^(-1) X beta
-# parte_determinista_spreg_22<- solve(A_rho_test_spreg_22, X_test_22 %*% beta_spreg_22)
-# 
-# # 5. Parte estocástica (error): (I - rho W)^(-1)(I - lambda G)^(-1) epsilon
-# parte_estocastica_spreg_22 <- solve(A_rho_test_spreg_22, solve(A_lambda_test_spreg_22, epsilon_spreg_22))
-# 
-# # 6. Predicción total
-# Y_simulado_spreg_22 <- parte_determinista_spreg_22 + parte_estocastica_spreg_22
-```
-
-```{r}
-# 7. Convertimos a vector si lo necesitas
-y_pred_vec_spreg_22 <- as.vector(Y_simulado_spreg_22)
-
-#valores_reales_ajustados <- ifelse(real == 0, 1, real)
-
-
-mae_spreg_22 <- mean(abs(y_pred_vec_spreg_22 - real_22), na.rm = TRUE)
-rmse_spreg_22 <- sqrt(mean((y_pred_vec_spreg_22 - real_22)^2, na.rm = TRUE))
-r2_spreg_22 <- cor(y_pred_vec_spreg_22, real_22, use = "complete.obs")^2
-mape_spreg_22 <- mean(abs((real_22 - y_pred_vec_spreg_22) / real_22)) * 100
-
-
-
-cat("MAE:", mae_spreg_22, "\nRMSE:", rmse_spreg_22, "\nR²:", r2_spreg_22, "\nMAPE:", round(mape_spreg_22, 4), "%\n")
-```
-
-```{r}
-plot(real_22, y_pred_vec_spreg_22,
-     xlab = "Valor real (test)",
-     ylab = "Predicción SARAR SPREG",
-     pch = 16, col = "blue",
-     main = "Predicción SARAR SPREG vs Real 2022")
-abline(0, 1, col = "red", lwd = 2)
-```
-
-### 2023
-
-```{r}
-# División temporal
-pov2_train_23 <- pov2 %>% filter(Año >= 2002 & Año <= 2022)
-pov2_test_23  <- pov2 %>% filter(Año == 2023)
-
-pov2_train_ord_23 <- pov2_train_23%>%
-  filter(!is.na(Cambios)) %>%
-  arrange(Año, nombre_provincia) # MUY IMPORTANTE: primero por año, luego provincia
-
-sf_use_s2(FALSE)
-cont.nb3_23 <- poly2nb(pov2_train_ord_23 %>% filter(Año == 2003))
-W_base_23 <- nb2mat(cont.nb3_23, style = "W", zero.policy = TRUE)  # matriz normal
-
-# Crear matriz identidad de orden 20 (años)
-n_train_23  <- nrow(pov2_train_ord_23[pov2_train_ord_23$codigo == "01", ])
-I_train_23 <- diag(n_train_23)
-# Kronecker: W final para el modelo
-W_big_train_23 <- kronecker(I_train_23, W_base_23)
-W1_23 <- mat2listw(W_big_train_23, style="W", zero.policy = TRUE)
-
-
-# Crear matriz temporal g_{20x20}
-g_base_23 <- matrix(0, nrow = n_train_23, ncol = n_train_23)
-for (i in 2:n_train_23) {
-  g_base_23[i, i - 1] <- 2/3
-  g_base_23[i, i - 2] <- 1/3
-}
-G_big_train_23 <- kronecker(g_base_23, I47)
-G1_23 <- mat2listw(G_big_train_23, style="W", zero.policy = TRUE)
-
-# Crear vectores Y e X
-Y_23 <- pov2_train_ord_23$Cambios
-X_23 <- cbind(pov2_train_ord_23$ipc_norm, as.numeric(pov2_train_ord_23$Año_norm))
-# Creamos el data frame final con las variables necesarias
-modelo_df_23<- data.frame(
-  Cambios = Y_23,
-  ipc = X_23[,1],
-  agno = X_23[,2],
-  ipcagno=X_23[,1]*X_23[,2])
-
-pov2_test_ord_23 <- pov2_test_23%>%
-  filter(!is.na(Cambios)) %>%
-  arrange(Año, nombre_provincia)
-
-#W_sparse <- Matrix(W_base, sparse = TRUE)  # ya creada antes
-n_test_23  <- nrow(pov2_test_ord_23[pov2_test_ord_23$codigo == "01", ])
-I_test_23 <- Diagonal(n_test_23)  # 10 años para el test (2014–2023)
-W_big_test_23 <- kronecker(I_test_23, W_base_23)
-W2_23 <- mat2listw(W_big_test_23, style="W", zero.policy = TRUE)
-
-X_test_mat_23 <- cbind(
-  Intercepto = 1,
-  ipcagno = pov2_test_ord_23$ipc_norm * as.numeric(pov2_test_ord_23$Año_norm)
-)
-X_test_23 <- Matrix(X_test_mat_23, sparse = TRUE)
-real_23 <- pov2_test_ord_23$Cambios
-n_test_obs_spreg_23 <- nrow(X_test_23)
-
-```
-
-```{r}
-##Modelo 1
-# Ejecutar modelo SARAR espaciotemporal
-modelo_spreg_23 <- spreg( formula = Cambios ~ ipcagno,
-                       data = modelo_df_23,  
-                       model="sarar",
-                       listw =W_big_train_23,  
-                       listw2 = G_big_train_23, 
-                       het = TRUE,
-                       q=1)
-
-summary(modelo_spreg_23)
-#modelo_sarar2[]
-
-```
-
-```{r}
-coefs_spreg_23 <- modelo_spreg_23$coefficients[, 1]
-rho_spreg_23 <- coefs_spreg_23['rho']
-lambda_spreg_23 <-coefs_spreg_23["lambda"]
-sigma2_spreg_23 <- modelo_spreg_23$s2
-sigma_spreg_23 <- sqrt(sigma2_spreg_23)
-beta_spreg_23 <- coefs_spreg_23[c("(Intercept)", "ipcagno")]
-```
-
-
-
-```{r}
-A_rho_test_spreg_23 <- Diagonal(n_test_obs_spreg_23) - rho_spreg_23 * W_big_test_23
-# 4. Predicción estructural: (I - rho W)^(-1) X beta
-Y_simulado_spreg_23<- solve(A_rho_test_spreg_23, X_test_23 %*% beta_spreg_23)
-```
-
-```{r}
-# set.seed(123)  # reproducibilidad
-# n_test_obs_spreg_23 <- nrow(X_test_23)
-# epsilon_spreg_23 <- rnorm(n_test_obs_spreg_23, mean = 0, sd = sigma_spreg_23[1,1])
-# epsilon_spreg_23 <- Matrix(epsilon_spreg_23, sparse = TRUE)  # para multiplicaciones
-# 
-# # 3. Construir matrices A_rho_test y A_lambda_test
-# A_rho_test_spreg_23 <- Diagonal(n_test_obs_spreg_23) - rho_spreg_23 * W_big_test_23
-# A_lambda_test_spreg_23 <- Diagonal(n_test_obs_spreg_23) - lambda_spreg_23 * G_big_test_23
-# 
-# # 4. Predicción estructural: (I - rho W)^(-1) X beta
-# parte_determinista_spreg_23<- solve(A_rho_test_spreg_23, X_test_23 %*% beta_spreg_23)
-# 
-# # 5. Parte estocástica (error): (I - rho W)^(-1)(I - lambda G)^(-1) epsilon
-# parte_estocastica_spreg_23 <- solve(A_rho_test_spreg_23, solve(A_lambda_test_spreg_23, epsilon_spreg_23))
-# 
-# # 6. Predicción total
-# Y_simulado_spreg_23 <- parte_determinista_spreg_23 + parte_estocastica_spreg_23
-```
-
-```{r}
-# 7. Convertimos a vector si lo necesitas
-y_pred_vec_spreg_23 <- as.vector(Y_simulado_spreg_23)
-
-#valores_reales_ajustados <- ifelse(real == 0, 1, real)
-
-
-mae_spreg_23 <- mean(abs(y_pred_vec_spreg_23 - real_23), na.rm = TRUE)
-rmse_spreg_23<- sqrt(mean((y_pred_vec_spreg_23 - real_23)^2, na.rm = TRUE))
-r2_spreg_23 <- cor(y_pred_vec_spreg_23, real_23, use = "complete.obs")^2
-mape_spreg_23 <- mean(abs((real_23 - y_pred_vec_spreg_23) / real_23)) * 100
-
-
-
-cat("MAE:", mae_spreg_23, "\nRMSE:", rmse_spreg_23, "\nR²:", r2_spreg_23, "\nMAPE:", round(mape_spreg_23, 4), "%\n")
-```
-
-```{r}
-plot(real_23, y_pred_vec_spreg_23,
-     xlab = "Valor real (test)",
-     ylab = "Predicción SARAR SPREG",
-     pch = 16, col = "blue",
-     main = "Predicción SARAR SPREG vs Real 2023")
-abline(0, 1, col = "red", lwd = 2)
-```
